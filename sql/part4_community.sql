@@ -1,0 +1,121 @@
+-- =====================================================
+-- [파트 4] 커뮤니티 & 신청 관리
+-- 담당: 팀원 4
+-- 테이블: APPLICATIONS, QNA_BOARD
+-- 의존: USERS(part1), CLUBS(part2)
+-- =====================================================
+
+DROP TABLE QNA_BOARD CASCADE CONSTRAINTS;
+DROP TABLE APPLICATIONS CASCADE CONSTRAINTS;
+DROP SEQUENCE SEQ_APP_ID;
+DROP SEQUENCE SEQ_QNA_ID;
+
+CREATE SEQUENCE SEQ_APP_ID START WITH 1 INCREMENT BY 1 NOCACHE;
+CREATE SEQUENCE SEQ_QNA_ID START WITH 1 INCREMENT BY 1 NOCACHE;
+
+-- APPLICATIONS 테이블 (가입 신청서)
+CREATE TABLE APPLICATIONS (
+    APP_ID          NUMBER          DEFAULT SEQ_APP_ID.NEXTVAL PRIMARY KEY,
+    USER_ID         NUMBER          NOT NULL,
+    CLUB_ID         NUMBER          NOT NULL,
+    MOTIVATION      VARCHAR2(1000)  NOT NULL,           -- 지원 동기
+    STATUS          VARCHAR2(10)    DEFAULT 'PENDING'
+                    CHECK (STATUS IN ('PENDING', 'APPROVED', 'REJECTED')),
+    APPLIED_AT      DATE            DEFAULT SYSDATE,
+    REVIEWED_AT     DATE,
+    REVIEWED_BY     NUMBER,                             -- 검토한 관리자 USER_ID
+    REVIEW_COMMENT  VARCHAR2(500),                      -- 거절 사유 등
+    CONSTRAINT FK_APP_USER  FOREIGN KEY (USER_ID) REFERENCES USERS(USER_ID) ON DELETE CASCADE,
+    CONSTRAINT FK_APP_CLUB  FOREIGN KEY (CLUB_ID) REFERENCES CLUBS(CLUB_ID) ON DELETE CASCADE,
+    CONSTRAINT UQ_APP       UNIQUE (USER_ID, CLUB_ID)   -- 동아리당 1회 신청
+);
+
+COMMENT ON TABLE APPLICATIONS IS '동아리 가입 신청서';
+COMMENT ON COLUMN APPLICATIONS.STATUS IS 'PENDING=대기, APPROVED=승인, REJECTED=거절';
+
+-- QNA_BOARD 테이블 (동아리별 Q&A 게시판)
+CREATE TABLE QNA_BOARD (
+    QNA_ID          NUMBER          DEFAULT SEQ_QNA_ID.NEXTVAL PRIMARY KEY,
+    CLUB_ID         NUMBER          NOT NULL,
+    AUTHOR_ID       NUMBER          NOT NULL,            -- 질문 작성자
+    PARENT_ID       NUMBER,                              -- NULL=질문글, 값있음=답변글
+    TITLE           VARCHAR2(200),                       -- 질문글에만 사용
+    CONTENT         VARCHAR2(2000)  NOT NULL,
+    IS_SECRET       CHAR(1)         DEFAULT 'N'
+                    CHECK (IS_SECRET IN ('Y', 'N')),
+    CREATED_AT      DATE            DEFAULT SYSDATE,
+    UPDATED_AT      DATE            DEFAULT SYSDATE,
+    CONSTRAINT FK_QNA_CLUB      FOREIGN KEY (CLUB_ID)   REFERENCES CLUBS(CLUB_ID) ON DELETE CASCADE,
+    CONSTRAINT FK_QNA_AUTHOR    FOREIGN KEY (AUTHOR_ID) REFERENCES USERS(USER_ID) ON DELETE CASCADE,
+    CONSTRAINT FK_QNA_PARENT    FOREIGN KEY (PARENT_ID) REFERENCES QNA_BOARD(QNA_ID) ON DELETE CASCADE
+);
+
+COMMENT ON TABLE QNA_BOARD IS '동아리별 Q&A 게시판 (계층형: PARENT_ID로 답변 연결)';
+COMMENT ON COLUMN QNA_BOARD.PARENT_ID IS 'NULL이면 질문, 값이 있으면 해당 QNA_ID의 답변';
+
+-- =====================================================
+-- 샘플 데이터
+-- =====================================================
+
+INSERT INTO APPLICATIONS (USER_ID, CLUB_ID, MOTIVATION, STATUS)
+VALUES (1, 1, '음악을 좋아하고 밴드 활동을 통해 다양한 친구들과 교류하고 싶습니다.', 'PENDING');
+
+INSERT INTO APPLICATIONS (USER_ID, CLUB_ID, MOTIVATION, STATUS)
+VALUES (2, 2, '평소 풋살을 즐기며 운동을 통해 활발한 대학 생활을 하고 싶습니다.', 'APPROVED');
+
+-- 질문글 (PARENT_ID = NULL)
+INSERT INTO QNA_BOARD (CLUB_ID, AUTHOR_ID, PARENT_ID, TITLE, CONTENT, IS_SECRET)
+VALUES (1, 1, NULL, '악기를 처음 배우는데 지원 가능한가요?', '기타를 배운 지 3개월 됐는데 지원해도 될까요?', 'N');
+
+-- 답변글 (PARENT_ID = 질문글의 QNA_ID)
+INSERT INTO QNA_BOARD (CLUB_ID, AUTHOR_ID, PARENT_ID, TITLE, CONTENT, IS_SECRET)
+VALUES (1, 3, 1, NULL, '네! 초보자도 환영합니다. 함께 성장해요 :)', 'N');
+
+COMMIT;
+
+-- =====================================================
+-- 유용한 조회 쿼리
+-- =====================================================
+
+-- [Q1] 신청 현황 대시보드 (사용자별)
+SELECT
+    A.APP_ID,
+    C.CLUB_NAME,
+    A.STATUS,
+    A.APPLIED_AT,
+    A.REVIEWED_AT,
+    A.REVIEW_COMMENT
+FROM APPLICATIONS A
+JOIN CLUBS C ON A.CLUB_ID = C.CLUB_ID
+WHERE A.USER_ID = :USER_ID
+ORDER BY A.APPLIED_AT DESC;
+
+-- [Q2] 동아리 관리자용 신청자 목록
+SELECT
+    A.APP_ID,
+    U.USER_NAME,
+    U.STUDENT_NO,
+    U.DEPARTMENT,
+    A.MOTIVATION,
+    A.STATUS,
+    A.APPLIED_AT
+FROM APPLICATIONS A
+JOIN USERS U ON A.USER_ID = U.USER_ID
+WHERE A.CLUB_ID = :CLUB_ID
+ORDER BY A.APPLIED_AT;
+
+-- [Q3] Q&A 목록 (계층형, 질문+답변 함께)
+SELECT
+    Q.QNA_ID,
+    Q.PARENT_ID,
+    U.USER_NAME,
+    CASE WHEN Q.PARENT_ID IS NULL THEN Q.TITLE ELSE '  └ 답변' END AS DISPLAY_TITLE,
+    Q.CONTENT,
+    Q.IS_SECRET,
+    Q.CREATED_AT
+FROM QNA_BOARD Q
+JOIN USERS U ON Q.AUTHOR_ID = U.USER_ID
+WHERE Q.CLUB_ID = :CLUB_ID
+START WITH Q.PARENT_ID IS NULL
+CONNECT BY PRIOR Q.QNA_ID = Q.PARENT_ID
+ORDER SIBLINGS BY Q.CREATED_AT;

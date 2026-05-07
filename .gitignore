@@ -1,0 +1,27 @@
+# ── 백엔드 (Spring Boot / Maven) ──
+backend/target/
+backend/.mvn/
+!backend/.mvn/wrapper/maven-wrapper.jar
+backend/*.class
+backend/*.jar
+backend/*.war
+
+# ── 프론트엔드 (React / Node) ──
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+frontend/.env.local
+
+# ── DB 접속 정보 (절대 올리면 안 됨) ──
+backend/src/main/resources/application-prod.properties
+
+# ── IDE ──
+.idea/
+*.iml
+.vscode/
+.DS_Store
+Thumbs.db
+
+# ── 로그 ──
+*.log
+logs/
