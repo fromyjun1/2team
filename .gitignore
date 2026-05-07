@@ -25,3 +25,14 @@ Thumbs.db
 # ── 로그 ──
 *.log
 logs/
+
+# ── Java 기타 ──
+*.class
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+.mtj.tmp/
+hs_err_pid*
+replay_pid*
