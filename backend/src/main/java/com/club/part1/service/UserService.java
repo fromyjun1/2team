@@ -11,11 +11,15 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class UserService {
+
+    private static final Pattern PW_PATTERN =
+        Pattern.compile("^(?=.*[A-Za-z])(?=.*\\d)(?=.*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?]).{8,}$");
 
     private final UserRepository userRepository;
     private final UserInterestRepository interestRepository;
@@ -23,6 +27,9 @@ public class UserService {
 
     @Transactional
     public User signup(String email, String rawPassword, String name, String studentNo, String department) {
+        if (!PW_PATTERN.matcher(rawPassword).matches()) {
+            throw new IllegalArgumentException("비밀번호는 영문, 숫자, 특수문자를 모두 포함하여 8자 이상이어야 합니다.");
+        }
         if (userRepository.existsByUserEmail(email)) {
             throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
         }
