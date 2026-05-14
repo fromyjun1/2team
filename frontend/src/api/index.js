@@ -5,10 +5,10 @@ const api = axios.create({
   headers: { 'Content-Type': 'application/json' },
 });
 
-// 요청마다 userId 자동 주입 (로컬스토리지 기반)
+// 요청마다 JWT 토큰 자동 주입
 api.interceptors.request.use((config) => {
   const user = JSON.parse(localStorage.getItem('user') || '{}');
-  if (user.userId) config.headers['X-User-Id'] = user.userId;
+  if (user.token) config.headers['Authorization'] = `Bearer ${user.token}`;
   return config;
 });
 

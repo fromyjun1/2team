@@ -1,5 +1,6 @@
 package com.club.part1.service;
 
+import com.club.config.JwtUtil;
 import com.club.part1.model.User;
 import com.club.part1.model.UserInterest;
 import com.club.part1.repository.UserRepository;
@@ -24,6 +25,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final UserInterestRepository interestRepository;
     private final BCryptPasswordEncoder passwordEncoder;
+    private final JwtUtil jwtUtil;
 
     @Transactional
     public User signup(String email, String rawPassword, String name, String studentNo, String department) {
@@ -48,8 +50,13 @@ public class UserService {
         if (!passwordEncoder.matches(rawPassword, user.getUserPw())) {
             throw new IllegalArgumentException("비밀번호가 올바르지 않습니다.");
         }
-        // TODO: JWT 토큰 발급 로직 추가
-        return Map.of("userId", user.getUserId(), "name", user.getUserName(), "role", user.getRole());
+        String token = jwtUtil.generateToken(user.getUserId(), user.getRole());
+        return Map.of(
+            "userId", user.getUserId(),
+            "name",   user.getUserName(),
+            "role",   user.getRole(),
+            "token",  token
+        );
     }
 
     public List<String> getUserTags(Long userId) {
