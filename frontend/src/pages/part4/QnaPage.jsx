@@ -16,7 +16,7 @@ export default function QnaPage({ userId }) {
 
   const submitQuestion = async (e) => {
     e.preventDefault();
-    await createQuestion({ clubId: Number(clubId), authorId: userId, title, content, isSecret });
+    await createQuestion({ clubId: Number(clubId), authorId: userId, title, content, isSecret: isSecret ? 'Y' : 'N' });
     setTitle(''); setContent(''); setIsSecret(false);
     load();
   };

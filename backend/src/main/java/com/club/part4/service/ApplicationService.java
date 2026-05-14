@@ -42,5 +42,6 @@ public class ApplicationService {
         app.setStatus(status);
         app.setReviewComment(comment);
         app.setReviewedAt(LocalDateTime.now());
+        applicationRepository.save(app);
     }
 }
