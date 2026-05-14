@@ -59,6 +59,17 @@ public class UserService {
         );
     }
 
+    public Map<String, Object> getMe(Long userId) {
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+        return Map.of(
+            "userId", user.getUserId(),
+            "name",   user.getUserName(),
+            "email",  user.getUserEmail(),
+            "role",   user.getRole()
+        );
+    }
+
     public List<String> getUserTags(Long userId) {
         return interestRepository.findByUserUserId(userId)
             .stream()

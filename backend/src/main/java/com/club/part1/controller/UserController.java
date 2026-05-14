@@ -4,6 +4,7 @@ import com.club.part1.model.User;
 import com.club.part1.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -15,6 +16,13 @@ import java.util.Map;
 public class UserController {
 
     private final UserService userService;
+
+    // GET /api/users/me — 현재 토큰의 유저 정보 반환 (새로고침 후 로그인 유지용)
+    @GetMapping("/me")
+    public ResponseEntity<Map<String, Object>> getMe(Authentication authentication) {
+        Long userId = (Long) authentication.getPrincipal();
+        return ResponseEntity.ok(userService.getMe(userId));
+    }
 
     // POST /api/users/signup — login과 동일한 Map 형식으로 반환
     @PostMapping("/signup")
