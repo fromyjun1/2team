@@ -12,7 +12,7 @@ public class UserInterest {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seq_interest")
-    @SequenceGenerator(name = "seq_interest", sequenceName = "SEQ_INTEREST_ID", allocationSize = 1)
+    @SequenceGenerator(name = "seq_interest", sequenceName = "seq_interest_id", allocationSize = 1)
     @Column(name = "INTEREST_ID")
     private Long interestId;
 

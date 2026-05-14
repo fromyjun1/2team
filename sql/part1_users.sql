@@ -1,74 +1,67 @@
 -- =====================================================
 -- [파트 1] 사용자 & 취향 데이터
 -- 담당: 팀원 1
--- 테이블: USERS, USER_INTERESTS
+-- 테이블: users, user_interests
+-- DB: PostgreSQL (Google Cloud SQL)
 -- =====================================================
 
--- 기존 테이블 삭제 (재실행 시)
-DROP TABLE USER_INTERESTS CASCADE CONSTRAINTS;
-DROP TABLE USERS CASCADE CONSTRAINTS;
-DROP SEQUENCE SEQ_USER_ID;
-DROP SEQUENCE SEQ_INTEREST_ID;
+DROP TABLE IF EXISTS user_interests CASCADE;
+DROP TABLE IF EXISTS users CASCADE;
+DROP SEQUENCE IF EXISTS seq_user_id;
+DROP SEQUENCE IF EXISTS seq_interest_id;
 
--- 시퀀스 생성
-CREATE SEQUENCE SEQ_USER_ID START WITH 1 INCREMENT BY 1 NOCACHE;
-CREATE SEQUENCE SEQ_INTEREST_ID START WITH 1 INCREMENT BY 1 NOCACHE;
+CREATE SEQUENCE seq_user_id START WITH 1 INCREMENT BY 1;
+CREATE SEQUENCE seq_interest_id START WITH 1 INCREMENT BY 1;
 
--- USERS 테이블
-CREATE TABLE USERS (
-    USER_ID     NUMBER          DEFAULT SEQ_USER_ID.NEXTVAL PRIMARY KEY,
-    USER_EMAIL  VARCHAR2(100)   NOT NULL UNIQUE,
-    USER_PW     VARCHAR2(255)   NOT NULL,           -- BCrypt 해시 저장
-    USER_NAME   VARCHAR2(50)    NOT NULL,
-    STUDENT_NO  VARCHAR2(20),                        -- 학번
-    DEPARTMENT  VARCHAR2(100),                       -- 학과
-    ROLE        VARCHAR2(10)    DEFAULT 'USER'       -- USER / ADMIN
-                CHECK (ROLE IN ('USER', 'ADMIN')),
-    CREATED_AT  DATE            DEFAULT SYSDATE,
-    UPDATED_AT  DATE            DEFAULT SYSDATE
+CREATE TABLE users (
+    user_id     BIGINT          DEFAULT nextval('seq_user_id') PRIMARY KEY,
+    user_email  VARCHAR(100)    NOT NULL UNIQUE,
+    user_pw     VARCHAR(255)    NOT NULL,
+    user_name   VARCHAR(50)     NOT NULL,
+    student_no  VARCHAR(20),
+    department  VARCHAR(100),
+    role        VARCHAR(10)     DEFAULT 'USER' CHECK (role IN ('USER', 'ADMIN')),
+    created_at  TIMESTAMP       DEFAULT CURRENT_TIMESTAMP,
+    updated_at  TIMESTAMP       DEFAULT CURRENT_TIMESTAMP
 );
 
-COMMENT ON TABLE USERS IS '회원 기본 정보';
-COMMENT ON COLUMN USERS.ROLE IS 'USER=일반회원, ADMIN=관리자';
+COMMENT ON TABLE users IS '회원 기본 정보';
+COMMENT ON COLUMN users.role IS 'USER=일반회원, ADMIN=관리자';
 
--- USER_INTERESTS 테이블 (사용자가 선택한 태그)
-CREATE TABLE USER_INTERESTS (
-    INTEREST_ID NUMBER          DEFAULT SEQ_INTEREST_ID.NEXTVAL PRIMARY KEY,
-    USER_ID     NUMBER          NOT NULL,
-    TAG_NAME    VARCHAR2(50)    NOT NULL,            -- 예: #밴드, #월요일, #친목
-    CREATED_AT  DATE            DEFAULT SYSDATE,
-    CONSTRAINT FK_INTEREST_USER FOREIGN KEY (USER_ID) REFERENCES USERS(USER_ID) ON DELETE CASCADE,
-    CONSTRAINT UQ_USER_TAG UNIQUE (USER_ID, TAG_NAME)
+CREATE TABLE user_interests (
+    interest_id BIGINT          DEFAULT nextval('seq_interest_id') PRIMARY KEY,
+    user_id     BIGINT          NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    tag_name    VARCHAR(50)     NOT NULL,
+    created_at  TIMESTAMP       DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uq_user_tag UNIQUE (user_id, tag_name)
 );
 
-COMMENT ON TABLE USER_INTERESTS IS '사용자가 선택한 관심 태그';
+COMMENT ON TABLE user_interests IS '사용자가 선택한 관심 태그';
 
 -- =====================================================
 -- 샘플 데이터
 -- =====================================================
 
-INSERT INTO USERS (USER_EMAIL, USER_PW, USER_NAME, STUDENT_NO, DEPARTMENT)
+INSERT INTO users (user_email, user_pw, user_name, student_no, department)
 VALUES ('alice@school.ac.kr', 'hashed_pw_1', '김앨리스', '20230001', '컴퓨터공학과');
 
-INSERT INTO USERS (USER_EMAIL, USER_PW, USER_NAME, STUDENT_NO, DEPARTMENT)
+INSERT INTO users (user_email, user_pw, user_name, student_no, department)
 VALUES ('bob@school.ac.kr', 'hashed_pw_2', '이밥', '20230002', '경영학과');
 
-INSERT INTO USERS (USER_EMAIL, USER_PW, USER_NAME, STUDENT_NO, DEPARTMENT, ROLE)
+INSERT INTO users (user_email, user_pw, user_name, student_no, department, role)
 VALUES ('admin@school.ac.kr', 'hashed_pw_admin', '관리자', '00000000', '학생처', 'ADMIN');
 
-INSERT INTO USER_INTERESTS (USER_ID, TAG_NAME) VALUES (1, '#밴드');
-INSERT INTO USER_INTERESTS (USER_ID, TAG_NAME) VALUES (1, '#음악');
-INSERT INTO USER_INTERESTS (USER_ID, TAG_NAME) VALUES (1, '#주말활동');
-INSERT INTO USER_INTERESTS (USER_ID, TAG_NAME) VALUES (2, '#친목');
-INSERT INTO USER_INTERESTS (USER_ID, TAG_NAME) VALUES (2, '#스포츠');
-INSERT INTO USER_INTERESTS (USER_ID, TAG_NAME) VALUES (2, '#초보환영');
-
-COMMIT;
+INSERT INTO user_interests (user_id, tag_name) VALUES (1, '#밴드');
+INSERT INTO user_interests (user_id, tag_name) VALUES (1, '#음악');
+INSERT INTO user_interests (user_id, tag_name) VALUES (1, '#주말활동');
+INSERT INTO user_interests (user_id, tag_name) VALUES (2, '#친목');
+INSERT INTO user_interests (user_id, tag_name) VALUES (2, '#스포츠');
+INSERT INTO user_interests (user_id, tag_name) VALUES (2, '#초보환영');
 
 -- =====================================================
 -- 조회 확인
 -- =====================================================
-SELECT U.USER_NAME, UI.TAG_NAME
-FROM USERS U
-JOIN USER_INTERESTS UI ON U.USER_ID = UI.USER_ID
-ORDER BY U.USER_ID, UI.TAG_NAME;
+SELECT u.user_name, ui.tag_name
+FROM users u
+JOIN user_interests ui ON u.user_id = ui.user_id
+ORDER BY u.user_id, ui.tag_name;

@@ -12,7 +12,7 @@ public class Application {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seq_app")
-    @SequenceGenerator(name = "seq_app", sequenceName = "SEQ_APP_ID", allocationSize = 1)
+    @SequenceGenerator(name = "seq_app", sequenceName = "seq_app_id", allocationSize = 1)
     @Column(name = "APP_ID")
     private Long appId;
 
