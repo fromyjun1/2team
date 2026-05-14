@@ -17,6 +17,12 @@ public class UserController {
 
     private final UserService userService;
 
+    // GET /api/users/check-email?email=xxx — 이메일 중복 여부 확인 (공개)
+    @GetMapping("/check-email")
+    public ResponseEntity<Map<String, Boolean>> checkEmail(@RequestParam String email) {
+        return ResponseEntity.ok(Map.of("available", userService.isEmailAvailable(email)));
+    }
+
     // GET /api/users/me — 현재 토큰의 유저 정보 반환 (새로고침 후 로그인 유지용)
     @GetMapping("/me")
     public ResponseEntity<Map<String, Object>> getMe(Authentication authentication) {

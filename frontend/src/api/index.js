@@ -15,7 +15,8 @@ api.interceptors.request.use((config) => {
 // ── 파트 1: 사용자 ──────────────────────────────
 export const signup = (data) => api.post('/users/signup', data);
 export const login  = (data) => api.post('/users/login', data);
-export const getMe  = ()     => api.get('/users/me');
+export const getMe       = ()      => api.get('/users/me');
+export const checkEmail  = (email) => api.get('/users/check-email', { params: { email } });
 export const getTags   = (userId) => api.get(`/users/${userId}/tags`);
 export const updateTags = (userId, tags) => api.put(`/users/${userId}/tags`, tags);
 

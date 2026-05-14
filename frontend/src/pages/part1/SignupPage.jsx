@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { signup } from '../../api';
+import { signup, checkEmail } from '../../api';
 
 const PW_REGEX = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/;
 
@@ -21,6 +21,24 @@ export default function SignupPage({ onSignup }) {
   const [form, setForm] = useState({ email: '', password: '', name: '', studentNo: '', department: '' });
   const [error, setError] = useState('');
   const [pwError, setPwError] = useState('');
+  // null | 'checking' | 'available' | 'taken'
+  const [emailStatus, setEmailStatus] = useState(null);
+
+  // 이메일 입력 후 500ms 뒤 중복 확인
+  useEffect(() => {
+    const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!form.email || !EMAIL_RE.test(form.email)) {
+      setEmailStatus(null);
+      return;
+    }
+    setEmailStatus('checking');
+    const timer = setTimeout(() => {
+      checkEmail(form.email)
+        .then(res => setEmailStatus(res.data.available ? 'available' : 'taken'))
+        .catch(() => setEmailStatus(null));
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [form.email]);
 
   const set = (key) => (e) => {
     const value = e.target.value;
@@ -41,6 +59,10 @@ export default function SignupPage({ onSignup }) {
       setPwError('영문, 숫자, 특수문자(!@#$ 등)를 모두 포함하여 8자 이상 입력해주세요.');
       return;
     }
+    if (emailStatus === 'taken') {
+      setError('이미 사용 중인 이메일입니다.');
+      return;
+    }
     try {
       const res = await signup(form);
       onSignup(res.data);
@@ -57,7 +79,25 @@ export default function SignupPage({ onSignup }) {
       <div style={styles.card}>
         <h2 style={styles.title}>회원가입</h2>
         <form onSubmit={handleSubmit} style={styles.form}>
-          <input style={styles.input} type="email"    placeholder="이메일"  value={form.email}      onChange={set('email')}      required />
+          <div>
+            <input
+              style={{
+                ...styles.input, width: '100%', boxSizing: 'border-box',
+                borderColor: emailStatus === 'available' ? '#16a34a'
+                           : emailStatus === 'taken'     ? '#e53e3e'
+                           : emailStatus === 'checking'  ? '#d97706'
+                           : '#ddd'
+              }}
+              type="email"
+              placeholder="이메일"
+              value={form.email}
+              onChange={set('email')}
+              required
+            />
+            {emailStatus === 'checking'  && <p style={{ ...styles.hint, color: '#d97706' }}>확인 중...</p>}
+            {emailStatus === 'available' && <p style={{ ...styles.hint, color: '#16a34a' }}>✓ 사용 가능한 이메일입니다.</p>}
+            {emailStatus === 'taken'     && <p style={{ ...styles.hint, color: '#e53e3e' }}>✗ 이미 사용 중인 이메일입니다.</p>}
+          </div>
           <div>
             <input
               style={{ ...styles.input, width: '100%', boxSizing: 'border-box', borderColor: pwError ? '#e53e3e' : '#ddd' }}
@@ -101,5 +141,6 @@ const styles = {
   input: { padding: '11px 14px', border: '1px solid #ddd', borderRadius: 8, fontSize: 14 },
   btn: { padding: 12, background: '#4f46e5', color: '#fff', border: 'none', borderRadius: 8, fontSize: 15, cursor: 'pointer', marginTop: 4 },
   error: { color: '#e53e3e', fontSize: 13 },
+  hint:  { fontSize: 12, marginTop: 4, marginBottom: 0 },
   link: { textAlign: 'center', marginTop: 16, fontSize: 13, color: '#666' },
 };
