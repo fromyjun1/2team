@@ -1,8 +1,10 @@
 package com.club.part1.controller;
 
+import com.club.config.JwtUtil;
 import com.club.part1.model.User;
 import com.club.part1.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -16,6 +18,7 @@ import java.util.Map;
 public class UserController {
 
     private final UserService userService;
+    private final JwtUtil jwtUtil;
 
     // GET /api/users/check-email?email=xxx — 이메일 중복 여부 확인 (공개)
     @GetMapping("/check-email")
@@ -30,7 +33,7 @@ public class UserController {
         return ResponseEntity.ok(userService.getMe(userId));
     }
 
-    // POST /api/users/signup — login과 동일한 Map 형식으로 반환
+    // POST /api/users/signup — 가입 즉시 토큰 발급해서 자동 로그인
     @PostMapping("/signup")
     public ResponseEntity<Map<String, Object>> signup(@RequestBody Map<String, String> body) {
         User user = userService.signup(
@@ -40,11 +43,13 @@ public class UserController {
             body.get("studentNo"),
             body.get("department")
         );
+        String token = jwtUtil.generateToken(user.getUserId(), user.getRole());
         return ResponseEntity.ok(Map.of(
             "userId", user.getUserId(),
             "name",   user.getUserName(),
             "email",  user.getUserEmail(),
-            "role",   user.getRole()
+            "role",   user.getRole(),
+            "token",  token
         ));
     }
 
@@ -54,16 +59,24 @@ public class UserController {
         return ResponseEntity.ok(userService.login(body.get("email"), body.get("password")));
     }
 
-    // GET /api/users/{userId}/tags
+    // GET /api/users/{userId}/tags — 본인 태그만 조회 가능
     @GetMapping("/{userId}/tags")
-    public ResponseEntity<List<String>> getTags(@PathVariable Long userId) {
+    public ResponseEntity<List<String>> getTags(@PathVariable Long userId,
+                                                Authentication authentication) {
+        if (!userId.equals((Long) authentication.getPrincipal())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
         return ResponseEntity.ok(userService.getUserTags(userId));
     }
 
-    // PUT /api/users/{userId}/tags
+    // PUT /api/users/{userId}/tags — 본인 태그만 수정 가능
     @PutMapping("/{userId}/tags")
     public ResponseEntity<Void> updateTags(@PathVariable Long userId,
-                                           @RequestBody List<String> tags) {
+                                           @RequestBody List<String> tags,
+                                           Authentication authentication) {
+        if (!userId.equals((Long) authentication.getPrincipal())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
         userService.updateTags(userId, tags);
         return ResponseEntity.ok().build();
     }

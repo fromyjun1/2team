@@ -54,6 +54,7 @@ public class UserService {
         return Map.of(
             "userId", user.getUserId(),
             "name",   user.getUserName(),
+            "email",  user.getUserEmail(),
             "role",   user.getRole(),
             "token",  token
         );
