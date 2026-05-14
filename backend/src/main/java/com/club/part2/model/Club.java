@@ -13,7 +13,7 @@ public class Club {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seq_club")
-    @SequenceGenerator(name = "seq_club", sequenceName = "SEQ_CLUB_ID", allocationSize = 1)
+    @SequenceGenerator(name = "seq_club", sequenceName = "seq_club_id", allocationSize = 1)
     @Column(name = "CLUB_ID")
     private Long clubId;
 

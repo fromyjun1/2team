@@ -13,7 +13,7 @@ public class QnaBoard {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seq_qna")
-    @SequenceGenerator(name = "seq_qna", sequenceName = "SEQ_QNA_ID", allocationSize = 1)
+    @SequenceGenerator(name = "seq_qna", sequenceName = "seq_qna_id", allocationSize = 1)
     @Column(name = "QNA_ID")
     private Long qnaId;
 

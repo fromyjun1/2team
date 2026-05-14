@@ -1,130 +1,88 @@
 -- =====================================================
 -- [파트 3] 매칭 로직 & 추천 결과
 -- 담당: 팀원 3
--- 테이블: MATCH_SCORES, WISHLIST
--- 의존: USERS(part1), CLUBS(part2), USER_INTERESTS(part1), CLUB_TAGS(part2)
+-- 테이블: match_scores, wishlist
+-- 의존: users(part1), clubs(part2), user_interests(part1), club_tags(part2)
+-- DB: PostgreSQL (Google Cloud SQL)
 -- =====================================================
 
-DROP TABLE WISHLIST CASCADE CONSTRAINTS;
-DROP TABLE MATCH_SCORES CASCADE CONSTRAINTS;
-DROP SEQUENCE SEQ_MATCH_ID;
-DROP SEQUENCE SEQ_WISH_ID;
+DROP TABLE IF EXISTS wishlist CASCADE;
+DROP TABLE IF EXISTS match_scores CASCADE;
+DROP SEQUENCE IF EXISTS seq_match_id;
+DROP SEQUENCE IF EXISTS seq_wish_id;
 
-CREATE SEQUENCE SEQ_MATCH_ID START WITH 1 INCREMENT BY 1 NOCACHE;
-CREATE SEQUENCE SEQ_WISH_ID  START WITH 1 INCREMENT BY 1 NOCACHE;
+CREATE SEQUENCE seq_match_id START WITH 1 INCREMENT BY 1;
+CREATE SEQUENCE seq_wish_id  START WITH 1 INCREMENT BY 1;
 
--- MATCH_SCORES 테이블 (매칭 결과 캐시)
-CREATE TABLE MATCH_SCORES (
-    MATCH_ID        NUMBER          DEFAULT SEQ_MATCH_ID.NEXTVAL PRIMARY KEY,
-    USER_ID         NUMBER          NOT NULL,
-    CLUB_ID         NUMBER          NOT NULL,
-    MATCH_COUNT     NUMBER          DEFAULT 0,      -- 일치 태그 수
-    TOTAL_TAGS      NUMBER          DEFAULT 0,      -- 동아리 전체 태그 수
-    SCORE_PCT       NUMBER(5,2)     DEFAULT 0,      -- 일치율 (%)
-    CALCULATED_AT   DATE            DEFAULT SYSDATE,
-    CONSTRAINT FK_MATCH_USER    FOREIGN KEY (USER_ID) REFERENCES USERS(USER_ID) ON DELETE CASCADE,
-    CONSTRAINT FK_MATCH_CLUB    FOREIGN KEY (CLUB_ID) REFERENCES CLUBS(CLUB_ID) ON DELETE CASCADE,
-    CONSTRAINT UQ_MATCH         UNIQUE (USER_ID, CLUB_ID)
+CREATE TABLE match_scores (
+    match_id        BIGINT          DEFAULT nextval('seq_match_id') PRIMARY KEY,
+    user_id         BIGINT          NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    club_id         BIGINT          NOT NULL REFERENCES clubs(club_id) ON DELETE CASCADE,
+    match_count     INTEGER         DEFAULT 0,
+    total_tags      INTEGER         DEFAULT 0,
+    score_pct       NUMERIC(5,2)    DEFAULT 0,
+    calculated_at   TIMESTAMP       DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uq_match UNIQUE (user_id, club_id)
 );
 
-COMMENT ON TABLE MATCH_SCORES IS '사용자-동아리 태그 매칭 점수 캐시';
-COMMENT ON COLUMN MATCH_SCORES.SCORE_PCT IS '(일치 태그 수 / 동아리 전체 태그 수) * 100';
+COMMENT ON TABLE match_scores IS '사용자-동아리 태그 매칭 점수 캐시';
+COMMENT ON COLUMN match_scores.score_pct IS '(일치 태그 수 / 동아리 전체 태그 수) * 100';
 
--- WISHLIST 테이블 (찜 목록)
-CREATE TABLE WISHLIST (
-    WISH_ID     NUMBER  DEFAULT SEQ_WISH_ID.NEXTVAL PRIMARY KEY,
-    USER_ID     NUMBER  NOT NULL,
-    CLUB_ID     NUMBER  NOT NULL,
-    ADDED_AT    DATE    DEFAULT SYSDATE,
-    CONSTRAINT FK_WISH_USER FOREIGN KEY (USER_ID) REFERENCES USERS(USER_ID) ON DELETE CASCADE,
-    CONSTRAINT FK_WISH_CLUB FOREIGN KEY (CLUB_ID) REFERENCES CLUBS(CLUB_ID) ON DELETE CASCADE,
-    CONSTRAINT UQ_WISHLIST  UNIQUE (USER_ID, CLUB_ID)
+CREATE TABLE wishlist (
+    wish_id     BIGINT  DEFAULT nextval('seq_wish_id') PRIMARY KEY,
+    user_id     BIGINT  NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    club_id     BIGINT  NOT NULL REFERENCES clubs(club_id) ON DELETE CASCADE,
+    added_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uq_wishlist UNIQUE (user_id, club_id)
 );
 
-COMMENT ON TABLE WISHLIST IS '사용자 찜 목록';
+COMMENT ON TABLE wishlist IS '사용자 찜 목록';
 
 -- =====================================================
--- 핵심 매칭 알고리즘 (Oracle SQL)
--- 사용법: :USER_ID 자리에 실제 사용자 ID 바인딩
+-- 핵심 매칭 알고리즘 (PostgreSQL)
 -- =====================================================
 
--- [쿼리 A] 특정 사용자에 대한 실시간 매칭 점수 계산
-SELECT
-    C.CLUB_ID,
-    C.CLUB_NAME,
-    C.CATEGORY,
-    COUNT(CT.TAG_NAME)                                          AS MATCH_COUNT,
-    (SELECT COUNT(*) FROM CLUB_TAGS WHERE CLUB_ID = C.CLUB_ID) AS TOTAL_TAGS,
-    ROUND(
-        COUNT(CT.TAG_NAME) * 100.0
-        / NULLIF((SELECT COUNT(*) FROM CLUB_TAGS WHERE CLUB_ID = C.CLUB_ID), 0),
-        1
-    )                                                           AS SCORE_PCT
-FROM CLUBS C
-JOIN CLUB_TAGS CT ON C.CLUB_ID = CT.CLUB_ID
-WHERE CT.TAG_NAME IN (
-    SELECT TAG_NAME FROM USER_INTERESTS WHERE USER_ID = :USER_ID
-)
-AND C.IS_ACTIVE = 'Y'
-GROUP BY C.CLUB_ID, C.CLUB_NAME, C.CATEGORY
-ORDER BY SCORE_PCT DESC, MATCH_COUNT DESC;
+-- [쿼리 A] 특정 사용자에 대한 실시간 매칭 점수 계산 ($1 = user_id)
+-- SELECT c.club_id, c.club_name, c.category,
+--        COUNT(ct.tag_name) AS match_count,
+--        (SELECT COUNT(*) FROM club_tags WHERE club_id = c.club_id) AS total_tags,
+--        ROUND(
+--            COUNT(ct.tag_name) * 100.0
+--            / NULLIF((SELECT COUNT(*) FROM club_tags WHERE club_id = c.club_id), 0), 1
+--        ) AS score_pct
+-- FROM clubs c
+-- JOIN club_tags ct ON c.club_id = ct.club_id
+-- WHERE ct.tag_name IN (SELECT tag_name FROM user_interests WHERE user_id = $1)
+--   AND c.is_active = 'Y'
+-- GROUP BY c.club_id, c.club_name, c.category
+-- ORDER BY score_pct DESC, match_count DESC;
 
--- [쿼리 B] 매칭 결과 MATCH_SCORES 테이블에 저장/갱신 (MERGE)
-MERGE INTO MATCH_SCORES MS
-USING (
-    SELECT
-        :USER_ID                                                    AS USER_ID,
-        C.CLUB_ID,
-        COUNT(CT.TAG_NAME)                                          AS MATCH_COUNT,
-        (SELECT COUNT(*) FROM CLUB_TAGS WHERE CLUB_ID = C.CLUB_ID) AS TOTAL_TAGS,
-        ROUND(
-            COUNT(CT.TAG_NAME) * 100.0
-            / NULLIF((SELECT COUNT(*) FROM CLUB_TAGS WHERE CLUB_ID = C.CLUB_ID), 0),
-            1
-        )                                                           AS SCORE_PCT
-    FROM CLUBS C
-    JOIN CLUB_TAGS CT ON C.CLUB_ID = CT.CLUB_ID
-    WHERE CT.TAG_NAME IN (
-        SELECT TAG_NAME FROM USER_INTERESTS WHERE USER_ID = :USER_ID
-    )
-    AND C.IS_ACTIVE = 'Y'
-    GROUP BY C.CLUB_ID
-) SRC ON (MS.USER_ID = SRC.USER_ID AND MS.CLUB_ID = SRC.CLUB_ID)
-WHEN MATCHED THEN
-    UPDATE SET
-        MS.MATCH_COUNT   = SRC.MATCH_COUNT,
-        MS.TOTAL_TAGS    = SRC.TOTAL_TAGS,
-        MS.SCORE_PCT     = SRC.SCORE_PCT,
-        MS.CALCULATED_AT = SYSDATE
-WHEN NOT MATCHED THEN
-    INSERT (USER_ID, CLUB_ID, MATCH_COUNT, TOTAL_TAGS, SCORE_PCT)
-    VALUES (SRC.USER_ID, SRC.CLUB_ID, SRC.MATCH_COUNT, SRC.TOTAL_TAGS, SRC.SCORE_PCT);
+-- [쿼리 B] 매칭 결과 저장/갱신 (PostgreSQL UPSERT)
+-- INSERT INTO match_scores (user_id, club_id, match_count, total_tags, score_pct)
+-- SELECT $1, c.club_id, COUNT(ct.tag_name), ...
+-- FROM clubs c JOIN club_tags ct ON c.club_id = ct.club_id
+-- WHERE ...
+-- ON CONFLICT (user_id, club_id) DO UPDATE SET
+--     match_count = EXCLUDED.match_count,
+--     score_pct   = EXCLUDED.score_pct,
+--     calculated_at = CURRENT_TIMESTAMP;
 
--- [쿼리 C] 사용자의 추천 결과 조회 (찜 여부 포함)
-SELECT
-    MS.CLUB_ID,
-    C.CLUB_NAME,
-    C.DESCRIPTION,
-    C.IMAGE_PATH,
-    C.CATEGORY,
-    MS.MATCH_COUNT,
-    MS.TOTAL_TAGS,
-    MS.SCORE_PCT,
-    CASE WHEN W.WISH_ID IS NOT NULL THEN 'Y' ELSE 'N' END AS IS_WISHLISTED
-FROM MATCH_SCORES MS
-JOIN CLUBS C ON MS.CLUB_ID = C.CLUB_ID
-LEFT JOIN WISHLIST W ON W.USER_ID = MS.USER_ID AND W.CLUB_ID = MS.CLUB_ID
-WHERE MS.USER_ID = :USER_ID
-ORDER BY MS.SCORE_PCT DESC;
+-- [쿼리 C] Q&A 계층형 조회 (PostgreSQL WITH RECURSIVE)
+-- WITH RECURSIVE qna_tree AS (
+--     SELECT * FROM qna_board WHERE club_id = $1 AND parent_id IS NULL
+--     UNION ALL
+--     SELECT q.* FROM qna_board q JOIN qna_tree t ON q.parent_id = t.qna_id
+-- )
+-- SELECT qt.*, u.user_name FROM qna_tree qt
+-- JOIN users u ON qt.author_id = u.user_id
+-- ORDER BY qt.qna_id, qt.created_at;
 
 -- =====================================================
 -- 샘플 데이터 (part1, part2 실행 후 실행)
 -- =====================================================
 
-INSERT INTO MATCH_SCORES (USER_ID, CLUB_ID, MATCH_COUNT, TOTAL_TAGS, SCORE_PCT) VALUES (1, 1, 3, 4, 75.0);
-INSERT INTO MATCH_SCORES (USER_ID, CLUB_ID, MATCH_COUNT, TOTAL_TAGS, SCORE_PCT) VALUES (1, 2, 1, 4, 25.0);
-INSERT INTO MATCH_SCORES (USER_ID, CLUB_ID, MATCH_COUNT, TOTAL_TAGS, SCORE_PCT) VALUES (2, 2, 3, 4, 75.0);
+INSERT INTO match_scores (user_id, club_id, match_count, total_tags, score_pct) VALUES (1, 1, 3, 4, 75.0);
+INSERT INTO match_scores (user_id, club_id, match_count, total_tags, score_pct) VALUES (1, 2, 1, 4, 25.0);
+INSERT INTO match_scores (user_id, club_id, match_count, total_tags, score_pct) VALUES (2, 2, 3, 4, 75.0);
 
-INSERT INTO WISHLIST (USER_ID, CLUB_ID) VALUES (1, 1);
-
-COMMIT;
+INSERT INTO wishlist (user_id, club_id) VALUES (1, 1);

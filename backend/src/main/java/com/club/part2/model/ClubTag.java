@@ -12,7 +12,7 @@ public class ClubTag {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seq_club_tag")
-    @SequenceGenerator(name = "seq_club_tag", sequenceName = "SEQ_CLUB_TAG_ID", allocationSize = 1)
+    @SequenceGenerator(name = "seq_club_tag", sequenceName = "seq_club_tag_id", allocationSize = 1)
     @Column(name = "TAG_ID")
     private Long tagId;
 
