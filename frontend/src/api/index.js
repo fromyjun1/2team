@@ -24,6 +24,11 @@ export const updateTags = (userId, tags) => api.put(`/users/${userId}/tags`, tag
 export const getClubs   = (category) => api.get('/clubs', { params: { category } });
 export const getClub    = (clubId) => api.get(`/clubs/${clubId}`);
 export const createClub = (data)   => api.post('/clubs', data);
+export const uploadClubImage = (file) => {
+  const form = new FormData();
+  form.append('file', file);
+  return api.post('/clubs/image', form, { headers: { 'Content-Type': 'multipart/form-data' } });
+};
 export const updateClubTags = (clubId, tags) => api.put(`/clubs/${clubId}/tags`, tags);
 
 // ── 파트 3: 매칭 ──────────────────────────────

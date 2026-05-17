@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { getClub, addWishlist, removeWishlist, applyClub } from '../../api';
+import { getClub, addWishlist, removeWishlist, applyClub, getWishlist } from '../../api';
 
 export default function ClubDetailPage({ userId }) {
   const { clubId } = useParams();
@@ -11,18 +11,31 @@ export default function ClubDetailPage({ userId }) {
   const [motivation, setMotivation] = useState('');
   const [submitted, setSubmitted]   = useState(false);
 
+  const requireLogin = () => { if (!userId) { navigate('/login'); return true; } return false; };
+
   useEffect(() => {
-    getClub(clubId).then((r) => setClub(r.data));
-  }, [clubId]);
+    let alive = true;
+    const clubIdNum = Number(clubId);
+    Promise.all([
+      getClub(clubId),
+      userId ? getWishlist(userId) : Promise.resolve(null),
+    ]).then(([clubRes, wishRes]) => {
+      if (!alive) return;
+      setClub(clubRes.data);
+      if (wishRes) setWished(wishRes.data.some((item) => item.clubId === clubIdNum));
+    });
+    return () => { alive = false; };
+  }, [clubId, userId]);
 
   const toggleWish = async () => {
-    if (!userId) { navigate('/login'); return; }
+    if (requireLogin()) return;
     if (wished) { await removeWishlist(userId, clubId); setWished(false); }
     else        { await addWishlist(userId, clubId);    setWished(true);  }
   };
 
   const handleApply = async (e) => {
     e.preventDefault();
+    if (requireLogin()) return;
     await applyClub({ userId, clubId: Number(clubId), motivation });
     setSubmitted(true);
     setApplying(false);
@@ -72,7 +85,7 @@ export default function ClubDetailPage({ userId }) {
         <div style={styles.btnRow}>
           <Link to={`/clubs/${clubId}/qna`} style={styles.qnaBtn}>Q&A 게시판</Link>
           {!submitted && (
-            <button style={styles.applyBtn} onClick={() => setApplying(!applying)}>
+            <button style={styles.applyBtn} onClick={() => { if (!requireLogin()) setApplying(!applying); }}>
               {applying ? '취소' : '가입 신청하기'}
             </button>
           )}
