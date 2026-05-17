@@ -51,6 +51,12 @@ function PrivateRoute({ user, children }) {
   return user ? children : <Navigate to="/login" replace />;
 }
 
+function AdminRoute({ user, children }) {
+  if (!user) return <Navigate to="/login" replace />;
+  if (user.role !== 'ADMIN') return <Navigate to="/" replace />;
+  return children;
+}
+
 // ── 앱 루트 ──────────────────────────────────────
 export default function App() {
   const [user, setUser] = useState(null);
@@ -111,7 +117,7 @@ export default function App() {
           <Route path="/clubs/:clubId/qna" element={<PrivateRoute user={user}><QnaPage userId={user?.userId} /></PrivateRoute>} />
 
           {/* 관리자 */}
-          <Route path="/admin" element={<PrivateRoute user={user}><AdminClubForm /></PrivateRoute>} />
+          <Route path="/admin" element={<AdminRoute user={user}><AdminClubForm /></AdminRoute>} />
         </Routes>
       </div>
     </BrowserRouter>

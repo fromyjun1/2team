@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getClubs } from '../../api';
 
-const CATEGORIES = ['전체', '문화/예술', '스포츠', '학술', '봉사'];
+const CATEGORIES = ['전체', '문화/예술', '스포츠', '학술', '봉사', '기타'];
 
 export default function ClubGalleryPage() {
   const navigate = useNavigate();
