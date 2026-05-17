@@ -28,6 +28,8 @@ public class SecurityConfig {
             .httpBasic(AbstractHttpConfigurer::disable)
             .formLogin(AbstractHttpConfigurer::disable)
             .authorizeHttpRequests(auth -> auth
+                // 오류 페이지 — 누구나 접근 가능
+                .requestMatchers("/error").permitAll()
                 // 회원가입, 로그인, 이메일 중복 확인 — 누구나 접근 가능
                 .requestMatchers(HttpMethod.GET,  "/api/users/check-email").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/users/signup", "/api/users/login").permitAll()
