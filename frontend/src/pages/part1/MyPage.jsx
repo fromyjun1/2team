@@ -9,9 +9,9 @@ export default function MyPage({ user }) {
 
   useEffect(() => {
     if (!user?.userId) return;
-    getTags(user.userId).then((r) => setTags(r.data));
-    getMyApplications(user.userId).then((r) => setApps(r.data));
-    getWishlist(user.userId).then((r) => setWishlist(r.data));
+    getTags(user.userId).then((r) => setTags(r.data)).catch(() => {});
+    getMyApplications(user.userId).then((r) => setApps(r.data)).catch(() => {});
+    getWishlist(user.userId).then((r) => setWishlist(r.data)).catch(() => {});
   }, [user]);
 
   const STATUS = { PENDING: { label: '검토 중', color: '#f59e0b' }, APPROVED: { label: '승인', color: '#10b981' }, REJECTED: { label: '거절', color: '#ef4444' } };

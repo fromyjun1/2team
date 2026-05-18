@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, Link } from 'react-router-dom';
 
+import { getMe } from './api';
 import LoginPage      from './pages/part1/LoginPage';
 import SignupPage     from './pages/part1/SignupPage';
 import TagSelectPage  from './pages/part1/TagSelectPage';
@@ -50,14 +51,50 @@ function PrivateRoute({ user, children }) {
   return user ? children : <Navigate to="/login" replace />;
 }
 
+function AdminRoute({ user, children }) {
+  if (!user) return <Navigate to="/login" replace />;
+  if (user.role !== 'ADMIN') return <Navigate to="/" replace />;
+  return children;
+}
+
 // ── 앱 루트 ──────────────────────────────────────
 export default function App() {
-  const [user, setUser] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('user')); } catch { return null; }
-  });
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const stored = (() => {
+      try { return JSON.parse(localStorage.getItem('user')); } catch { return null; }
+    })();
+
+    if (stored?.token) {
+      getMe()
+        .then(res => {
+          const refreshed = { ...res.data, token: stored.token };
+          localStorage.setItem('user', JSON.stringify(refreshed));
+          setUser(refreshed);
+        })
+        .catch(() => {
+          // 토큰 만료 또는 유효하지 않으면 자동 로그아웃
+          localStorage.removeItem('user');
+          setUser(null);
+        })
+        .finally(() => setLoading(false));
+    } else {
+      setLoading(false);
+    }
+  }, []);
 
   const handleLogin  = (u) => { localStorage.setItem('user', JSON.stringify(u)); setUser(u); };
   const handleLogout = () => { localStorage.removeItem('user'); setUser(null); };
+
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <div style={{ color: '#4f46e5', fontSize: 16 }}>로딩 중...</div>
+      </div>
+    );
+  }
 
   return (
     <BrowserRouter>
@@ -80,7 +117,7 @@ export default function App() {
           <Route path="/clubs/:clubId/qna" element={<PrivateRoute user={user}><QnaPage userId={user?.userId} /></PrivateRoute>} />
 
           {/* 관리자 */}
-          <Route path="/admin" element={<PrivateRoute user={user}><AdminClubForm /></PrivateRoute>} />
+          <Route path="/admin" element={<AdminRoute user={user}><AdminClubForm /></AdminRoute>} />
         </Routes>
       </div>
     </BrowserRouter>

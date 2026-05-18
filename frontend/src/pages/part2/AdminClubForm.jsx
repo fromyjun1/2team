@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { createClub } from '../../api';
+import { createClub, uploadClubImage } from '../../api';
 
 const ALL_TAGS = [
   '#음악', '#밴드', '#정기공연', '#스포츠', '#풋살', '#농구',
@@ -15,22 +15,42 @@ export default function AdminClubForm() {
     maxMembers: 30, contactEmail: '', imagePath: '',
   });
   const [selectedTags, setSelectedTags] = useState([]);
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
   const [done, setDone] = useState(false);
+  const [error, setError] = useState('');
 
   const set = (key) => (e) => setForm({ ...form, [key]: e.target.value });
   const toggleTag = (tag) =>
     setSelectedTags((p) => p.includes(tag) ? p.filter((t) => t !== tag) : [...p, tag]);
 
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await createClub({ ...form, maxMembers: Number(form.maxMembers), tags: selectedTags });
-    setDone(true);
+    setError('');
+    try {
+      let imagePath = form.imagePath;
+      if (imageFile) {
+        const res = await uploadClubImage(imageFile);
+        imagePath = res.data.imagePath;
+      }
+      await createClub({ ...form, imagePath, maxMembers: Number(form.maxMembers), tags: selectedTags });
+      setDone(true);
+    } catch (err) {
+      setError(err.response?.data?.error || '등록 중 오류가 발생했습니다.');
+    }
   };
 
   if (done) return (
     <div style={{ textAlign: 'center', marginTop: 100 }}>
       <p style={{ fontSize: 20, marginBottom: 12 }}>동아리가 등록되었습니다!</p>
-      <button style={styles.btn} onClick={() => { setDone(false); setForm({ clubName: '', description: '', category: '문화/예술', maxMembers: 30, contactEmail: '', imagePath: '' }); setSelectedTags([]); }}>
+      <button style={styles.btn} onClick={() => { setDone(false); setForm({ clubName: '', description: '', category: '문화/예술', maxMembers: 30, contactEmail: '', imagePath: '' }); setSelectedTags([]); setImageFile(null); setImagePreview(null); setError(''); }}>
         다시 등록
       </button>
     </div>
@@ -62,8 +82,11 @@ export default function AdminClubForm() {
           </div>
         </div>
 
-        <label style={styles.label}>대표 이미지 파일명 (예: club.jpg)</label>
-        <input style={styles.input} value={form.imagePath} onChange={set('imagePath')} placeholder="이미지 파일명 (선택)" />
+        <label style={styles.label}>대표 이미지</label>
+        <input type="file" accept="image/*" onChange={handleImageChange} style={styles.fileInput} />
+        {imagePreview && (
+          <img src={imagePreview} alt="미리보기" style={styles.preview} />
+        )}
 
         <label style={styles.label}>태그 선택</label>
         <div style={styles.tagGrid}>
@@ -77,6 +100,7 @@ export default function AdminClubForm() {
           ))}
         </div>
 
+        {error && <p style={styles.error}>{error}</p>}
         <button style={styles.btn} type="submit">등록하기</button>
       </form>
     </div>
@@ -94,5 +118,8 @@ const styles = {
   tagGrid: { display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 8 },
   tag: { padding: '7px 14px', borderRadius: 20, border: '2px solid #e5e7eb', background: '#fff', cursor: 'pointer', fontSize: 13 },
   tagOn: { borderColor: '#4f46e5', background: '#eef2ff', color: '#4f46e5', fontWeight: 600 },
+  fileInput: { fontSize: 14 },
+  preview: { width: '100%', maxHeight: 160, objectFit: 'cover', borderRadius: 8, marginTop: 4 },
+  error: { color: '#e53e3e', fontSize: 13, margin: 0 },
   btn: { marginTop: 8, padding: 13, background: '#4f46e5', color: '#fff', border: 'none', borderRadius: 8, fontSize: 15, cursor: 'pointer' },
 };

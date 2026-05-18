@@ -8,6 +8,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.util.List;
@@ -17,6 +18,9 @@ public class AppConfig implements WebMvcConfigurer {
 
     @Value("${cors.allowed-origins}")
     private String allowedOrigins;
+
+    @Value("${app.upload.dir}")
+    private String uploadDir;
 
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
@@ -34,6 +38,12 @@ public class AppConfig implements WebMvcConfigurer {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/api/**", config);
         return source;
+    }
+
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        registry.addResourceHandler("/images/clubs/**")
+                .addResourceLocations("file:" + uploadDir + "/clubs/");
     }
 
     @Override
