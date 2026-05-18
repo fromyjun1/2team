@@ -48,6 +48,7 @@ public class ClubController {
     }
 
     // POST /api/clubs/image  — 대표 이미지 업로드 (ADMIN 전용)
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/image")
     public ResponseEntity<Map<String, String>> uploadImage(
             @RequestParam("file") MultipartFile file) throws IOException {
