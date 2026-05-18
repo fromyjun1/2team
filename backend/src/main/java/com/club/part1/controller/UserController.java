@@ -3,7 +3,9 @@ package com.club.part1.controller;
 import com.club.part1.model.User;
 import com.club.part1.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -43,6 +45,8 @@ public class UserController {
     // GET /api/users/{userId}/tags
     @GetMapping("/{userId}/tags")
     public ResponseEntity<List<String>> getTags(@PathVariable Long userId) {
+        Long currentUserId = (Long) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (!currentUserId.equals(userId)) return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         return ResponseEntity.ok(userService.getUserTags(userId));
     }
 
@@ -50,6 +54,8 @@ public class UserController {
     @PutMapping("/{userId}/tags")
     public ResponseEntity<Void> updateTags(@PathVariable Long userId,
                                            @RequestBody List<String> tags) {
+        Long currentUserId = (Long) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (!currentUserId.equals(userId)) return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         userService.updateTags(userId, tags);
         return ResponseEntity.ok().build();
     }

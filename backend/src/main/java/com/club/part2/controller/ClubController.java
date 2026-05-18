@@ -4,6 +4,7 @@ import com.club.part2.model.Club;
 import com.club.part2.service.ClubService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -30,12 +31,14 @@ public class ClubController {
     }
 
     // POST /api/clubs  — 동아리 등록 (ADMIN 전용)
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<Club> createClub(@RequestBody Map<String, Object> body) {
         return ResponseEntity.ok(clubService.createClub(body));
     }
 
     // PUT /api/clubs/{clubId}/tags  — 태그 수정 (ADMIN 전용)
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{clubId}/tags")
     public ResponseEntity<Void> updateTags(@PathVariable Long clubId,
                                            @RequestBody List<String> tags) {

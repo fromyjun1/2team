@@ -19,14 +19,14 @@ public class MatchService {
         // PostgreSQL: MERGE 대신 INSERT ... ON CONFLICT DO UPDATE 사용
         String upsertSql =
             "INSERT INTO match_scores (user_id, club_id, match_count, total_tags, score_pct) " +
-            "SELECT " + userId + ", c.club_id, " +
+            "SELECT ?, c.club_id, " +
             "       COUNT(ct.tag_name), " +
             "       (SELECT COUNT(*) FROM club_tags WHERE club_id = c.club_id), " +
             "       ROUND(CAST(COUNT(ct.tag_name) * 100.0 AS numeric) " +
             "           / NULLIF((SELECT COUNT(*) FROM club_tags WHERE club_id = c.club_id), 0), 1) " +
             "FROM clubs c " +
             "JOIN club_tags ct ON c.club_id = ct.club_id " +
-            "WHERE ct.tag_name IN (SELECT tag_name FROM user_interests WHERE user_id = " + userId + ") " +
+            "WHERE ct.tag_name IN (SELECT tag_name FROM user_interests WHERE user_id = ?) " +
             "  AND c.is_active = 'Y' " +
             "GROUP BY c.club_id " +
             "ON CONFLICT (user_id, club_id) DO UPDATE SET " +
@@ -34,7 +34,7 @@ public class MatchService {
             "    total_tags = EXCLUDED.total_tags, " +
             "    score_pct = EXCLUDED.score_pct, " +
             "    calculated_at = CURRENT_TIMESTAMP";
-        jdbc.update(upsertSql);
+        jdbc.update(upsertSql, userId, userId);
 
         String selectSql = """
             SELECT ms.club_id, c.club_name, c.description, c.image_path, c.category,

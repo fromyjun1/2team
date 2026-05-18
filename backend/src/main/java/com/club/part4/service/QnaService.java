@@ -15,10 +15,11 @@ public class QnaService {
 
     private final QnaRepository qnaRepository;
 
-    public List<QnaBoard> getList(Long clubId) {
+    public List<QnaBoard> getList(Long clubId, Long currentUserId) {
         List<QnaBoard> all = qnaRepository.findByClubIdOrderByCreatedAt(clubId);
         List<QnaBoard> questions = all.stream()
             .filter(q -> q.getParentId() == null)
+            .filter(q -> !"Y".equals(q.getIsSecret()) || q.getAuthorId().equals(currentUserId))
             .collect(Collectors.toList());
         questions.forEach(q -> {
             List<QnaBoard> replies = all.stream()
