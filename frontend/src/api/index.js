@@ -12,6 +12,18 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+// 401 응답 시 자동 로그아웃 후 로그인 페이지로 이동
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem('user');
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
+  }
+);
+
 // ── 파트 1: 사용자 ──────────────────────────────
 export const signup = (data) => api.post('/users/signup', data);
 export const login  = (data) => api.post('/users/login', data);

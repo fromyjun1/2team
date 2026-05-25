@@ -18,9 +18,10 @@ function getPasswordStrength(pw) {
 
 export default function SignupPage({ onSignup }) {
   const navigate = useNavigate();
-  const [form, setForm] = useState({ email: '', password: '', name: '', studentNo: '', department: '' });
+  const [form, setForm] = useState({ email: '', password: '', confirmPassword: '', name: '', studentNo: '', department: '' });
   const [error, setError] = useState('');
   const [pwError, setPwError] = useState('');
+  const [confirmError, setConfirmError] = useState('');
   // null | 'checking' | 'available' | 'taken'
   const [emailStatus, setEmailStatus] = useState(null);
 
@@ -42,13 +43,17 @@ export default function SignupPage({ onSignup }) {
 
   const set = (key) => (e) => {
     const value = e.target.value;
-    setForm({ ...form, [key]: value });
+    const updated = { ...form, [key]: value };
+    setForm(updated);
     if (key === 'password') {
-      if (value && !PW_REGEX.test(value)) {
-        setPwError('영문, 숫자, 특수문자(!@#$ 등)를 모두 포함하여 8자 이상 입력해주세요.');
-      } else {
-        setPwError('');
-      }
+      setPwError(value && !PW_REGEX.test(value)
+        ? '영문, 숫자, 특수문자(!@#$ 등)를 모두 포함하여 8자 이상 입력해주세요.' : '');
+      setConfirmError(updated.confirmPassword && value !== updated.confirmPassword
+        ? '비밀번호가 일치하지 않습니다.' : '');
+    }
+    if (key === 'confirmPassword') {
+      setConfirmError(value && value !== updated.password
+        ? '비밀번호가 일치하지 않습니다.' : '');
     }
   };
 
@@ -58,6 +63,10 @@ export default function SignupPage({ onSignup }) {
     if (!PW_REGEX.test(form.password)) {
       setPwError('영문, 숫자, 특수문자(!@#$ 등)를 모두 포함하여 8자 이상 입력해주세요.');
       //return; //경고만 뜨고 계속 진행
+    }
+    if (form.password !== form.confirmPassword) {
+      setConfirmError('비밀번호가 일치하지 않습니다.');
+      return;
     }
     if (emailStatus === 'taken') {
       setError('이미 사용 중인 이메일입니다.');
@@ -120,6 +129,17 @@ export default function SignupPage({ onSignup }) {
               </div>
             )}
             {pwError && <p style={styles.error}>{pwError}</p>}
+          </div>
+          <div>
+            <input
+              style={{ ...styles.input, width: '100%', boxSizing: 'border-box', borderColor: confirmError ? '#e53e3e' : '#ddd' }}
+              type="password"
+              placeholder="비밀번호 확인"
+              value={form.confirmPassword}
+              onChange={set('confirmPassword')}
+              required
+            />
+            {confirmError && <p style={styles.error}>{confirmError}</p>}
           </div>
           <input style={styles.input} type="text"    placeholder="이름"    value={form.name}       onChange={set('name')}       required />
           <input style={styles.input} type="text"    placeholder="학번"    value={form.studentNo}  onChange={set('studentNo')} />
