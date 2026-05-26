@@ -84,12 +84,20 @@ export default function ClubDetailPage({ userId }) {
         {/* 하단 버튼 */}
         <div style={styles.btnRow}>
           <Link to={`/clubs/${clubId}/qna`} style={styles.qnaBtn}>Q&A 게시판</Link>
-          {!submitted && (
-            <button style={styles.applyBtn} onClick={() => { if (!requireLogin()) setApplying(!applying); }}>
-              {applying ? '취소' : '가입 신청하기'}
+          {club.creatorId === userId ? (
+            <button style={styles.manageBtn} onClick={() => navigate(`/clubs/${clubId}/manage`)}>
+              ⚙ 관리하기
             </button>
+          ) : (
+            <>
+              {!submitted && (
+                <button style={styles.applyBtn} onClick={() => { if (!requireLogin()) setApplying(!applying); }}>
+                  {applying ? '취소' : '가입 신청하기'}
+                </button>
+              )}
+              {submitted && <span style={styles.successMsg}>신청 완료!</span>}
+            </>
           )}
-          {submitted && <span style={styles.successMsg}>신청 완료!</span>}
         </div>
 
         {/* 신청 폼 인라인 */}
@@ -131,7 +139,8 @@ const styles = {
   infoVal: { fontSize: 15, fontWeight: 600, margin: 0 },
   btnRow: { display: 'flex', gap: 12, alignItems: 'center' },
   qnaBtn: { padding: '10px 22px', border: '1px solid #4f46e5', borderRadius: 8, color: '#4f46e5', fontSize: 14 },
-  applyBtn: { padding: '10px 22px', background: '#4f46e5', color: '#fff', border: 'none', borderRadius: 8, fontSize: 14, cursor: 'pointer' },
+  applyBtn:  { padding: '10px 22px', background: '#4f46e5', color: '#fff', border: 'none', borderRadius: 8, fontSize: 14, cursor: 'pointer' },
+  manageBtn: { padding: '10px 22px', background: '#f59e0b', color: '#fff', border: 'none', borderRadius: 8, fontSize: 14, cursor: 'pointer' },
   successMsg: { color: '#10b981', fontWeight: 600 },
   applyForm: { marginTop: 20, display: 'flex', flexDirection: 'column', gap: 10 },
   textarea: { padding: '12px 14px', border: '1px solid #ddd', borderRadius: 8, fontSize: 14, resize: 'vertical' },

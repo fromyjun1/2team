@@ -18,7 +18,7 @@ function getPasswordStrength(pw) {
 
 export default function SignupPage({ onSignup }) {
   const navigate = useNavigate();
-  const [form, setForm] = useState({ email: '', password: '', confirmPassword: '', name: '', studentNo: '', department: '' });
+  const [form, setForm] = useState({ email: '', password: '', confirmPassword: '', name: '' });
   const [error, setError] = useState('');
   const [pwError, setPwError] = useState('');
   const [confirmError, setConfirmError] = useState('');
@@ -141,9 +141,7 @@ export default function SignupPage({ onSignup }) {
             />
             {confirmError && <p style={styles.error}>{confirmError}</p>}
           </div>
-          <input style={styles.input} type="text"    placeholder="이름"    value={form.name}       onChange={set('name')}       required />
-          <input style={styles.input} type="text"    placeholder="학번"    value={form.studentNo}  onChange={set('studentNo')} />
-          <input style={styles.input} type="text"    placeholder="학과"    value={form.department} onChange={set('department')} />
+          <input style={styles.input} type="text" placeholder="이름" value={form.name} onChange={set('name')} required />
           {error && <p style={styles.error}>{error}</p>}
           <button style={styles.btn} type="submit">가입하기</button>
         </form>

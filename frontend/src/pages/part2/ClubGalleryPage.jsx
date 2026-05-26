@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getClubs } from '../../api';
 
@@ -6,16 +6,114 @@ const CATEGORIES = ['전체', '문화/예술', '스포츠', '학술', '봉사', 
 
 export default function ClubGalleryPage() {
   const navigate = useNavigate();
+  const inputRef = useRef(null);
   const [clubs, setClubs]       = useState([]);
   const [category, setCategory] = useState('전체');
+  const [chips, setChips]       = useState([]);   // [{ word, exclude }]
+  const [inputVal, setInputVal] = useState('');
 
   useEffect(() => {
     getClubs(category === '전체' ? null : category).then((res) => setClubs(res.data));
   }, [category]);
 
+  const addChip = (raw) => {
+    const trimmed = raw.trim();
+    if (!trimmed || trimmed === '-') return;
+    const exclude = trimmed.startsWith('-');
+    const word    = exclude ? trimmed.slice(1).trim() : trimmed;
+    if (!word) return;
+    setChips((prev) => {
+      if (prev.some((c) => c.word === word && c.exclude === exclude)) return prev;
+      return [...prev, { word, exclude }];
+    });
+  };
+
+  const handleInputChange = (e) => {
+    const val = e.target.value;
+    if (val.endsWith(' ')) {
+      addChip(val);
+      setInputVal('');
+    } else {
+      setInputVal(val);
+    }
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Backspace' && inputVal === '' && chips.length > 0) {
+      setChips((prev) => prev.slice(0, -1));
+    }
+    if (e.key === 'Enter') {
+      addChip(inputVal);
+      setInputVal('');
+    }
+  };
+
+  const removeChip = (idx) => setChips((prev) => prev.filter((_, i) => i !== idx));
+
+  const matchesWord = (club, word) => {
+    const w = word.toLowerCase();
+    const tagQuery = w.startsWith('#') ? w : '#' + w;
+    return (
+      club.clubName.toLowerCase().includes(w) ||
+      (club.tags?.some((t) => t.tagName.toLowerCase().includes(tagQuery)) ?? false)
+    );
+  };
+
+  const includeChips        = chips.filter((c) => !c.exclude);
+  const excludeChips        = chips.filter((c) => c.exclude);
+  const currentWord         = inputVal.trim();
+  const isCurrentExclude    = currentWord.startsWith('-');
+  const strippedCurrentWord = currentWord.replace(/^-/, '').trim();
+
+  const filtered = clubs.filter((club) => {
+    const hasPositive = includeChips.length > 0 || (!isCurrentExclude && strippedCurrentWord.length > 0);
+    const positiveOk  = !hasPositive ||
+      includeChips.some((c) => matchesWord(club, c.word)) ||
+      (!isCurrentExclude && strippedCurrentWord.length > 0 && matchesWord(club, strippedCurrentWord));
+    const negativeOk  =
+      excludeChips.every((c) => !matchesWord(club, c.word)) &&
+      !(isCurrentExclude && strippedCurrentWord.length > 0 && matchesWord(club, strippedCurrentWord));
+    return positiveOk && negativeOk;
+  });
+
+  const hasFilter = chips.length > 0 || strippedCurrentWord.length > 0;
+
   return (
     <div style={styles.container}>
       <h2 style={styles.title}>동아리 목록</h2>
+
+      {/* 검색창 */}
+      <div style={styles.searchBox} onClick={() => inputRef.current?.focus()}>
+        <span style={styles.searchIcon}>🔍</span>
+
+        {/* 칩 목록 */}
+        {chips.map((chip, i) => (
+          <span
+            key={i}
+            style={chip.exclude ? styles.chipExclude : styles.chipInclude}
+            onClick={(e) => { e.stopPropagation(); removeChip(i); }}
+          >
+            {chip.exclude ? '-' : ''}{chip.word.startsWith('#') ? chip.word : '#' + chip.word}
+            <span style={styles.chipX}> ✕</span>
+          </span>
+        ))}
+
+        <input
+          ref={inputRef}
+          style={styles.searchInput}
+          type="text"
+          placeholder={chips.length === 0 ? '태그 또는 동아리명 검색 (예: 축구   -제외태그)' : ''}
+          value={inputVal}
+          onChange={handleInputChange}
+          onKeyDown={handleKeyDown}
+        />
+
+        {hasFilter && (
+          <button style={styles.clearBtn} onClick={(e) => { e.stopPropagation(); setChips([]); setInputVal(''); }}>
+            ✕
+          </button>
+        )}
+      </div>
 
       {/* 카테고리 필터 */}
       <div style={styles.filterRow}>
@@ -30,9 +128,17 @@ export default function ClubGalleryPage() {
         ))}
       </div>
 
+      {/* 검색 결과 안내 */}
+      {hasFilter && (
+        <p style={styles.resultInfo}>검색 결과 {filtered.length}개</p>
+      )}
+
       {/* 카드 그리드 */}
       <div style={styles.grid}>
-        {clubs.map((club) => (
+        {filtered.length === 0 && hasFilter && (
+          <p style={{ color: '#aaa', fontSize: 14, gridColumn: '1/-1' }}>검색 결과가 없습니다.</p>
+        )}
+        {filtered.map((club) => (
           <div key={club.clubId} style={styles.card} onClick={() => navigate(`/clubs/${club.clubId}`)}>
             <div style={styles.imgBox}>
               {club.imagePath
@@ -53,18 +159,30 @@ export default function ClubGalleryPage() {
 }
 
 const styles = {
-  container: { maxWidth: 900, margin: '40px auto', padding: '0 20px' },
-  title: { fontSize: 22, marginBottom: 20 },
-  filterRow: { display: 'flex', gap: 8, marginBottom: 24 },
-  filterBtn: { padding: '7px 16px', borderRadius: 20, border: '1px solid #ddd', background: '#fff', cursor: 'pointer', fontSize: 13 },
+  container:    { maxWidth: 900, margin: '40px auto', padding: '0 20px' },
+  title:        { fontSize: 22, marginBottom: 20 },
+
+  searchBox:    { display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 6, background: '#fff', border: '1px solid #ddd', borderRadius: 10, padding: '8px 12px', marginBottom: 16, boxShadow: '0 1px 4px rgba(0,0,0,0.05)', cursor: 'text' },
+  searchIcon:   { fontSize: 15, color: '#aaa', flexShrink: 0 },
+  searchInput:  { flex: 1, minWidth: 120, border: 'none', outline: 'none', fontSize: 14, color: '#333', padding: '2px 0' },
+  clearBtn:     { background: 'none', border: 'none', cursor: 'pointer', color: '#aaa', fontSize: 14, padding: '0 2px', flexShrink: 0 },
+
+  chipInclude:  { display: 'inline-flex', alignItems: 'center', padding: '3px 10px', borderRadius: 20, border: '1.5px solid #4f46e5', color: '#4f46e5', fontSize: 13, fontWeight: 600, background: '#eef2ff', cursor: 'pointer', userSelect: 'none' },
+  chipExclude:  { display: 'inline-flex', alignItems: 'center', padding: '3px 10px', borderRadius: 20, border: '1.5px solid #ef4444', color: '#ef4444', fontSize: 13, fontWeight: 600, background: '#fef2f2', cursor: 'pointer', userSelect: 'none' },
+  chipX:        { marginLeft: 4, fontSize: 11, opacity: 0.7 },
+
+  resultInfo:   { fontSize: 13, color: '#666', marginBottom: 12 },
+  filterRow:    { display: 'flex', gap: 8, marginBottom: 24 },
+  filterBtn:    { padding: '7px 16px', borderRadius: 20, border: '1px solid #ddd', background: '#fff', cursor: 'pointer', fontSize: 13 },
   filterActive: { background: '#4f46e5', color: '#fff', borderColor: '#4f46e5' },
-  grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: 20 },
-  card: { borderRadius: 12, overflow: 'hidden', boxShadow: '0 2px 12px rgba(0,0,0,0.08)', cursor: 'pointer', background: '#fff', transition: 'transform 0.15s' },
-  imgBox: { height: 140, overflow: 'hidden', background: '#f0f0f0' },
-  img: { width: '100%', height: '100%', objectFit: 'cover' },
+
+  grid:         { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: 20 },
+  card:         { borderRadius: 12, overflow: 'hidden', boxShadow: '0 2px 12px rgba(0,0,0,0.08)', cursor: 'pointer', background: '#fff', transition: 'transform 0.15s' },
+  imgBox:       { height: 140, overflow: 'hidden', background: '#f0f0f0' },
+  img:          { width: '100%', height: '100%', objectFit: 'cover' },
   imgPlaceholder: { display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', fontSize: 40, color: '#999' },
-  cardBody: { padding: '14px 16px' },
-  category: { fontSize: 11, color: '#4f46e5', fontWeight: 600, textTransform: 'uppercase' },
-  clubName: { margin: '4px 0 6px', fontSize: 16 },
-  desc: { fontSize: 13, color: '#666', margin: 0 },
+  cardBody:     { padding: '14px 16px' },
+  category:     { fontSize: 11, color: '#4f46e5', fontWeight: 600, textTransform: 'uppercase' },
+  clubName:     { margin: '4px 0 6px', fontSize: 16 },
+  desc:         { fontSize: 13, color: '#666', margin: 0 },
 };

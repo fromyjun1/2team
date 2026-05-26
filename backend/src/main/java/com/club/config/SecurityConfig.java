@@ -36,9 +36,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/users/signup", "/api/users/login").permitAll()
                 // 동아리 목록/상세 — 누구나 접근 가능
                 .requestMatchers(HttpMethod.GET, "/api/clubs", "/api/clubs/**").permitAll()
-                // 동아리 등록·태그 수정·이미지 업로드 — ADMIN 전용
-                .requestMatchers(HttpMethod.POST, "/api/clubs", "/api/clubs/image").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.PUT,  "/api/clubs/**").hasRole("ADMIN")
+                // 동아리 등록·수정·이미지 업로드 — 로그인 유저 (권한은 서비스 레이어에서 검증)
                 // 나머지 — 로그인 필요
                 .anyRequest().authenticated()
             )

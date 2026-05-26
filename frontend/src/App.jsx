@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, Link } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, Link, useNavigate } from 'react-router-dom';
 
 import { getMe } from './api';
 import LoginPage      from './pages/part1/LoginPage';
@@ -9,6 +9,8 @@ import MyPage         from './pages/part1/MyPage';
 
 import ClubGalleryPage  from './pages/part2/ClubGalleryPage';
 import ClubDetailPage   from './pages/part2/ClubDetailPage';
+import CreateClubPage   from './pages/part2/CreateClubPage';
+import ClubManagePage   from './pages/part2/ClubManagePage';
 import AdminClubForm    from './pages/part2/AdminClubForm';
 
 import RecommendPage  from './pages/part3/RecommendPage';
@@ -27,6 +29,7 @@ function Navbar({ user, onLogout }) {
         <Link to="/recommend" style={nav.link}>추천 받기</Link>
         <Link to="/wishlist" style={nav.link}>찜 목록</Link>
         <Link to="/applications" style={nav.link}>신청 현황</Link>
+        {user && <Link to="/clubs/new" style={nav.link}>동아리 만들기</Link>}
         {user?.role === 'ADMIN' && <Link to="/admin" style={nav.link}>관리자</Link>}
       </div>
       <div style={nav.right}>
@@ -54,6 +57,31 @@ function PrivateRoute({ user, children }) {
 function AdminRoute({ user, children }) {
   if (!user) return <Navigate to="/login" replace />;
   if (user.role !== 'ADMIN') return <Navigate to="/" replace />;
+  return children;
+}
+
+function ProfileRequiredRoute({ user, children }) {
+  const navigate = useNavigate();
+  if (!user) return <Navigate to="/login" replace />;
+  if (!user.studentNo || !user.department) {
+    return (
+      <div style={{ maxWidth: 480, margin: '80px auto', textAlign: 'center', padding: '0 20px' }}>
+        <div style={{ background: '#fff', borderRadius: 16, padding: '48px 40px', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }}>
+          <div style={{ fontSize: 48, marginBottom: 16 }}>📋</div>
+          <h2 style={{ marginBottom: 12, color: '#1a1a2e', fontSize: 20 }}>학생 정보를 입력해주세요</h2>
+          <p style={{ color: '#666', lineHeight: 1.7, marginBottom: 28, fontSize: 14 }}>
+            추천받기, 찜 목록, 신청 현황 기능은<br />학번·학과 정보 입력 후 이용하실 수 있습니다.
+          </p>
+          <button
+            onClick={() => navigate('/mypage?tab=profile')}
+            style={{ padding: '12px 32px', background: '#4f46e5', color: '#fff', border: 'none', borderRadius: 8, fontSize: 15, cursor: 'pointer' }}
+          >
+            정보 입력하러 가기
+          </button>
+        </div>
+      </div>
+    );
+  }
   return children;
 }
 
@@ -87,6 +115,15 @@ export default function App() {
 
   const handleLogin  = (u) => { localStorage.setItem('user', JSON.stringify(u)); setUser(u); };
   const handleLogout = () => { localStorage.removeItem('user'); setUser(null); };
+  const refreshUser  = () => {
+    const stored = (() => { try { return JSON.parse(localStorage.getItem('user')); } catch { return null; } })();
+    if (!stored?.token) return;
+    getMe().then(res => {
+      const refreshed = { ...res.data, token: stored.token };
+      localStorage.setItem('user', JSON.stringify(refreshed));
+      setUser(refreshed);
+    }).catch(() => {});
+  };
 
   if (loading) {
     return (
@@ -106,14 +143,16 @@ export default function App() {
           <Route path="/signup" element={<SignupPage onSignup={handleLogin} />} />
           <Route path="/clubs"  element={<ClubGalleryPage />} />
           <Route path="/clubs/:clubId" element={<ClubDetailPage userId={user?.userId} />} />
+          <Route path="/clubs/new" element={<PrivateRoute user={user}><CreateClubPage /></PrivateRoute>} />
+          <Route path="/clubs/:clubId/manage" element={<PrivateRoute user={user}><ClubManagePage user={user} /></PrivateRoute>} />
 
           {/* 로그인 필요 */}
           <Route path="/" element={<PrivateRoute user={user}><Navigate to="/recommend" replace /></PrivateRoute>} />
           <Route path="/tags"    element={<PrivateRoute user={user}><TagSelectPage userId={user?.userId} /></PrivateRoute>} />
-          <Route path="/mypage"  element={<PrivateRoute user={user}><MyPage user={user} /></PrivateRoute>} />
-          <Route path="/recommend" element={<PrivateRoute user={user}><RecommendPage userId={user?.userId} /></PrivateRoute>} />
-          <Route path="/wishlist"  element={<PrivateRoute user={user}><WishlistPage userId={user?.userId} /></PrivateRoute>} />
-          <Route path="/applications" element={<PrivateRoute user={user}><ApplicationPage userId={user?.userId} /></PrivateRoute>} />
+          <Route path="/mypage"  element={<PrivateRoute user={user}><MyPage user={user} onProfileSaved={refreshUser} /></PrivateRoute>} />
+          <Route path="/recommend" element={<ProfileRequiredRoute user={user}><RecommendPage userId={user?.userId} /></ProfileRequiredRoute>} />
+          <Route path="/wishlist"  element={<ProfileRequiredRoute user={user}><WishlistPage userId={user?.userId} /></ProfileRequiredRoute>} />
+          <Route path="/applications" element={<ProfileRequiredRoute user={user}><ApplicationPage userId={user?.userId} /></ProfileRequiredRoute>} />
           <Route path="/clubs/:clubId/qna" element={<PrivateRoute user={user}><QnaPage userId={user?.userId} /></PrivateRoute>} />
 
           {/* 관리자 */}

@@ -29,13 +29,22 @@ export const signup = (data) => api.post('/users/signup', data);
 export const login  = (data) => api.post('/users/login', data);
 export const getMe       = ()      => api.get('/users/me');
 export const checkEmail  = (email) => api.get('/users/check-email', { params: { email } });
-export const getTags   = (userId) => api.get(`/users/${userId}/tags`);
+export const getTags    = (userId) => api.get(`/users/${userId}/tags`);
 export const updateTags = (userId, tags) => api.put(`/users/${userId}/tags`, tags);
+export const getProfile = (userId) => api.get(`/users/${userId}/profile`);
+export const updateProfile = (userId, studentNo, department, certificateFile) => {
+  const form = new FormData();
+  if (studentNo)       form.append('studentNo', studentNo);
+  if (department)      form.append('department', department);
+  if (certificateFile) form.append('certificate', certificateFile);
+  return api.put(`/users/${userId}/profile`, form, { headers: { 'Content-Type': 'multipart/form-data' } });
+};
 
 // ── 파트 2: 동아리 ──────────────────────────────
 export const getClubs   = (category) => api.get('/clubs', { params: { category } });
-export const getClub    = (clubId) => api.get(`/clubs/${clubId}`);
-export const createClub = (data)   => api.post('/clubs', data);
+export const getClub    = (clubId)   => api.get(`/clubs/${clubId}`);
+export const createClub = (data)     => api.post('/clubs', data);
+export const updateClub = (clubId, data) => api.put(`/clubs/${clubId}`, data);
 export const uploadClubImage = (file) => {
   const form = new FormData();
   form.append('file', file);

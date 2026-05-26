@@ -22,6 +22,7 @@ CREATE TABLE clubs (
     max_members     INTEGER         DEFAULT 30,
     contact_email   VARCHAR(100),
     is_active       CHAR(1)         DEFAULT 'Y' CHECK (is_active IN ('Y', 'N')),
+    creator_id      BIGINT          REFERENCES users(user_id) ON DELETE SET NULL,
     created_at      TIMESTAMP       DEFAULT CURRENT_TIMESTAMP
 );
 

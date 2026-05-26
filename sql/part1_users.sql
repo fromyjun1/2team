@@ -14,15 +14,16 @@ CREATE SEQUENCE seq_user_id START WITH 1 INCREMENT BY 1;
 CREATE SEQUENCE seq_interest_id START WITH 1 INCREMENT BY 1;
 
 CREATE TABLE users (
-    user_id     BIGINT          DEFAULT nextval('seq_user_id') PRIMARY KEY,
-    user_email  VARCHAR(100)    NOT NULL UNIQUE,
-    user_pw     VARCHAR(255)    NOT NULL,
-    user_name   VARCHAR(50)     NOT NULL,
-    student_no  VARCHAR(20),
-    department  VARCHAR(100),
-    role        VARCHAR(10)     DEFAULT 'USER' CHECK (role IN ('USER', 'ADMIN')),
-    created_at  TIMESTAMP       DEFAULT CURRENT_TIMESTAMP,
-    updated_at  TIMESTAMP       DEFAULT CURRENT_TIMESTAMP
+    user_id          BIGINT          DEFAULT nextval('seq_user_id') PRIMARY KEY,
+    user_email       VARCHAR(100)    NOT NULL UNIQUE,
+    user_pw          VARCHAR(255)    NOT NULL,
+    user_name        VARCHAR(50)     NOT NULL,
+    student_no       VARCHAR(20),
+    department       VARCHAR(100),
+    certificate_path VARCHAR(255),
+    role             VARCHAR(10)     DEFAULT 'USER' CHECK (role IN ('USER', 'ADMIN')),
+    created_at       TIMESTAMP       DEFAULT CURRENT_TIMESTAMP,
+    updated_at       TIMESTAMP       DEFAULT CURRENT_TIMESTAMP
 );
 
 COMMENT ON TABLE users IS '회원 기본 정보';

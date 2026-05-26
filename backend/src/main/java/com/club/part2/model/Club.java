@@ -38,6 +38,9 @@ public class Club {
     @Column(name = "IS_ACTIVE")
     private String isActive = "Y";
 
+    @Column(name = "CREATOR_ID")
+    private Long creatorId;
+
     @Column(name = "CREATED_AT")
     private LocalDateTime createdAt = LocalDateTime.now();
 

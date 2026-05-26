@@ -34,6 +34,9 @@ public class User {
     @Column(name = "DEPARTMENT")
     private String department;
 
+    @Column(name = "CERTIFICATE_PATH")
+    private String certificatePath;
+
     @Column(name = "ROLE")
     private String role = "USER";
 

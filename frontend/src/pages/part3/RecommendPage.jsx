@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import { getRecommendations, addWishlist, removeWishlist } from '../../api';
 
 export default function RecommendPage({ userId }) {
+  const navigate = useNavigate();
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -30,9 +32,12 @@ export default function RecommendPage({ userId }) {
       <p style={styles.sub}>선택한 태그를 기반으로 추천된 결과입니다.</p>
 
       {results.length === 0 && (
-        <p style={{ color: '#999', textAlign: 'center', marginTop: 40 }}>
-          관심 태그를 먼저 선택해 주세요.
-        </p>
+        <div style={{ textAlign: 'center', marginTop: 40 }}>
+          <p style={{ color: '#999', marginBottom: 16 }}>관심 태그를 먼저 선택해 주세요.</p>
+          <button onClick={() => navigate('/tags')} style={styles.tagBtn}>
+            태그 선택하러 가기
+          </button>
+        </div>
       )}
 
       {results.map((club, idx) => (
@@ -44,7 +49,9 @@ export default function RecommendPage({ userId }) {
 
           <div style={styles.cardBody}>
             <div>
-              <h3 style={styles.clubName}>{club.clubName}</h3>
+              <Link to={`/clubs/${club.clubId}`} style={styles.clubNameLink}>
+                <h3 style={styles.clubName}>{club.clubName}</h3>
+              </Link>
               <p style={styles.desc}>{club.description}</p>
             </div>
 
@@ -80,6 +87,7 @@ const styles = {
   card: { display: 'flex', alignItems: 'center', gap: 16, background: '#fff', borderRadius: 12, padding: '20px 24px', marginBottom: 16, boxShadow: '0 2px 12px rgba(0,0,0,0.07)', position: 'relative' },
   rankBadge: { minWidth: 44, height: 44, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, fontSize: 13 },
   cardBody: { flex: 1 },
+  clubNameLink: { textDecoration: 'none', color: 'inherit' },
   clubName: { margin: '0 0 4px', fontSize: 17 },
   desc: { margin: '0 0 10px', color: '#666', fontSize: 13 },
   matchRow: { display: 'flex', flexDirection: 'column', gap: 4 },
@@ -88,4 +96,5 @@ const styles = {
   barFill: { height: '100%', background: '#4f46e5', borderRadius: 4, transition: 'width 0.4s' },
   wishBtn: { padding: '8px 14px', border: '1px solid #ddd', borderRadius: 20, background: '#fff', cursor: 'pointer', fontSize: 13, whiteSpace: 'nowrap' },
   wished: { background: '#fef2f2', borderColor: '#fca5a5', color: '#ef4444' },
+  tagBtn: { padding: '10px 28px', background: '#4f46e5', color: '#fff', border: 'none', borderRadius: 8, fontSize: 14, cursor: 'pointer' },
 };

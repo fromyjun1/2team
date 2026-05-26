@@ -30,16 +30,23 @@ public class ClubService {
             .orElseThrow(() -> new IllegalArgumentException("동아리를 찾을 수 없습니다."));
     }
 
+    public boolean isClubAdmin(Long clubId, Long userId) {
+        return clubRepository.findById(clubId)
+            .map(c -> userId.equals(c.getCreatorId()))
+            .orElse(false);
+    }
+
     @Transactional
-    public Club createClub(Map<String, Object> body) {
+    public Club createClub(Map<String, Object> body, Long creatorId) {
         Club club = new Club();
         club.setClubName((String) body.get("clubName"));
         club.setDescription((String) body.get("description"));
         club.setImagePath((String) body.get("imagePath"));
         club.setCategory((String) body.get("category"));
         club.setContactEmail((String) body.get("contactEmail"));
-        if (body.containsKey("maxMembers")) {
-            club.setMaxMembers((Integer) body.get("maxMembers"));
+        club.setCreatorId(creatorId);
+        if (body.containsKey("maxMembers") && body.get("maxMembers") != null) {
+            club.setMaxMembers(((Number) body.get("maxMembers")).intValue());
         }
         Club saved = clubRepository.save(club);
 
@@ -49,11 +56,29 @@ public class ClubService {
             tags.forEach(tag -> {
                 ClubTag ct = new ClubTag();
                 ct.setClub(saved);
-                ct.setTagName(tag);
+                ct.setTagName(tag.startsWith("#") ? tag : "#" + tag);
                 clubTagRepository.save(ct);
             });
         }
         return saved;
+    }
+
+    @Transactional
+    public Club updateClub(Long clubId, Map<String, Object> body, Long requesterId) {
+        Club club = clubRepository.findById(clubId)
+            .orElseThrow(() -> new IllegalArgumentException("동아리를 찾을 수 없습니다."));
+        if (!requesterId.equals(club.getCreatorId())) {
+            throw new IllegalStateException("동아리 관리자만 수정할 수 있습니다.");
+        }
+        if (body.containsKey("clubName"))    club.setClubName((String) body.get("clubName"));
+        if (body.containsKey("description")) club.setDescription((String) body.get("description"));
+        if (body.containsKey("imagePath"))   club.setImagePath((String) body.get("imagePath"));
+        if (body.containsKey("category"))    club.setCategory((String) body.get("category"));
+        if (body.containsKey("contactEmail")) club.setContactEmail((String) body.get("contactEmail"));
+        if (body.containsKey("maxMembers") && body.get("maxMembers") != null) {
+            club.setMaxMembers(((Number) body.get("maxMembers")).intValue());
+        }
+        return clubRepository.save(club);
     }
 
     @Transactional
@@ -64,7 +89,7 @@ public class ClubService {
         tags.forEach(tag -> {
             ClubTag ct = new ClubTag();
             ct.setClub(club);
-            ct.setTagName(tag);
+            ct.setTagName(tag.startsWith("#") ? tag : "#" + tag);
             clubTagRepository.save(ct);
         });
     }

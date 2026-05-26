@@ -10,6 +10,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -28,7 +29,7 @@ public class UserService {
     private final JwtUtil jwtUtil;
 
     @Transactional
-    public User signup(String email, String rawPassword, String name, String studentNo, String department) {
+    public User signup(String email, String rawPassword, String name) {
         if (!PW_PATTERN.matcher(rawPassword).matches()) {
             throw new IllegalArgumentException("비밀번호는 영문, 숫자, 특수문자를 모두 포함하여 8자 이상이어야 합니다.");
         }
@@ -39,8 +40,6 @@ public class UserService {
         user.setUserEmail(email);
         user.setUserPw(passwordEncoder.encode(rawPassword));
         user.setUserName(name);
-        user.setStudentNo(studentNo);
-        user.setDepartment(department);
         return userRepository.save(user);
     }
 
@@ -51,13 +50,15 @@ public class UserService {
             throw new IllegalArgumentException("비밀번호가 올바르지 않습니다.");
         }
         String token = jwtUtil.generateToken(user.getUserId(), user.getRole());
-        return Map.of(
-            "userId", user.getUserId(),
-            "name",   user.getUserName(),
-            "email",  user.getUserEmail(),
-            "role",   user.getRole(),
-            "token",  token
-        );
+        Map<String, Object> result = new HashMap<>();
+        result.put("userId",     user.getUserId());
+        result.put("name",       user.getUserName());
+        result.put("email",      user.getUserEmail());
+        result.put("role",       user.getRole());
+        result.put("token",      token);
+        result.put("studentNo",  user.getStudentNo());
+        result.put("department", user.getDepartment());
+        return result;
     }
 
     public boolean isEmailAvailable(String email) {
@@ -67,12 +68,33 @@ public class UserService {
     public Map<String, Object> getMe(Long userId) {
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
-        return Map.of(
-            "userId", user.getUserId(),
-            "name",   user.getUserName(),
-            "email",  user.getUserEmail(),
-            "role",   user.getRole()
-        );
+        Map<String, Object> result = new HashMap<>();
+        result.put("userId",     user.getUserId());
+        result.put("name",       user.getUserName());
+        result.put("email",      user.getUserEmail());
+        result.put("role",       user.getRole());
+        result.put("studentNo",  user.getStudentNo());
+        result.put("department", user.getDepartment());
+        return result;
+    }
+
+    public Map<String, Object> getProfile(Long userId) {
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+        Map<String, Object> result = new HashMap<>();
+        result.put("studentNo",       user.getStudentNo());
+        result.put("department",      user.getDepartment());
+        result.put("certificatePath", user.getCertificatePath());
+        return result;
+    }
+
+    @Transactional
+    public void updateProfile(Long userId, String studentNo, String department, String certificatePath) {
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+        if (studentNo    != null) user.setStudentNo(studentNo);
+        if (department   != null) user.setDepartment(department);
+        if (certificatePath != null) user.setCertificatePath(certificatePath);
     }
 
     public List<String> getUserTags(Long userId) {

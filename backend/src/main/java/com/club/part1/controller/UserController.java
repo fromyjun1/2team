@@ -1,16 +1,33 @@
 package com.club.part1.controller;
 
-import com.club.config.JwtUtil;
-import com.club.part1.model.User;
-import com.club.part1.service.UserService;
-import lombok.RequiredArgsConstructor;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.util.List;
-import java.util.Map;
+import com.club.config.JwtUtil;
+import com.club.part1.model.User;
+import com.club.part1.service.UserService;
+
+import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/users")
@@ -19,6 +36,9 @@ public class UserController {
 
     private final UserService userService;
     private final JwtUtil jwtUtil;
+
+    @Value("${app.upload.dir}")
+    private String uploadDir;
 
     // GET /api/users/check-email?email=xxx — 이메일 중복 여부 확인 (공개)
     @GetMapping("/check-email")
@@ -39,18 +59,51 @@ public class UserController {
         User user = userService.signup(
             body.get("email"),
             body.get("password"),
-            body.get("name"),
-            body.get("studentNo"),
-            body.get("department")
+            body.get("name")
         );
         String token = jwtUtil.generateToken(user.getUserId(), user.getRole());
-        return ResponseEntity.ok(Map.of(
-            "userId", user.getUserId(),
-            "name",   user.getUserName(),
-            "email",  user.getUserEmail(),
-            "role",   user.getRole(),
-            "token",  token
-        ));
+        Map<String, Object> result = new HashMap<>();
+        result.put("userId",     user.getUserId());
+        result.put("name",       user.getUserName());
+        result.put("email",      user.getUserEmail());
+        result.put("role",       user.getRole());
+        result.put("token",      token);
+        result.put("studentNo",  null);
+        result.put("department", null);
+        return ResponseEntity.ok(result);
+    }
+
+    // GET /api/users/{userId}/profile — 학생 정보 조회
+    @GetMapping("/{userId}/profile")
+    public ResponseEntity<Map<String, Object>> getProfile(@PathVariable Long userId,
+                                                          Authentication authentication) {
+        if (!userId.equals((Long) authentication.getPrincipal())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        return ResponseEntity.ok(userService.getProfile(userId));
+    }
+
+    // PUT /api/users/{userId}/profile — 학생 정보 + 재학인증서 저장
+    @PutMapping("/{userId}/profile")
+    public ResponseEntity<Void> updateProfile(
+            @PathVariable Long userId,
+            @RequestParam(required = false) String studentNo,
+            @RequestParam(required = false) String department,
+            @RequestParam(required = false) MultipartFile certificate,
+            Authentication authentication) throws IOException {
+        if (!userId.equals((Long) authentication.getPrincipal())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        String certPath = null;
+        if (certificate != null && !certificate.isEmpty()) {
+            String filename = UUID.randomUUID() + "_" + certificate.getOriginalFilename();
+            Path dir = Paths.get(uploadDir, "certificates");
+            Files.createDirectories(dir);
+            Files.copy(certificate.getInputStream(), dir.resolve(filename));
+            certPath = filename;
+        }
+        userService.updateProfile(userId, studentNo, department, certPath);
+        return ResponseEntity.ok().build();
     }
 
     // POST /api/users/login

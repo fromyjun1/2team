@@ -1,11 +1,12 @@
 package com.club.part4.controller;
 
+import com.club.part2.service.ClubService;
 import com.club.part4.model.Application;
 import com.club.part4.service.ApplicationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,8 +19,9 @@ import java.util.Map;
 public class ApplicationController {
 
     private final ApplicationService applicationService;
+    private final ClubService clubService;
 
-    // POST /api/applications  — 가입 신청 (JWT에서 userId 추출)
+    // POST /api/applications — 가입 신청
     @PostMapping
     public ResponseEntity<Application> apply(@RequestBody Map<String, Object> body) {
         Long userId = (Long) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -28,26 +30,37 @@ public class ApplicationController {
         return ResponseEntity.ok(applicationService.apply(userId, clubId, motivation));
     }
 
-    // GET /api/applications/user/{userId}  — 내 신청 현황 (본인만)
+    // GET /api/applications/user/{userId} — 내 신청 현황 (본인만)
     @GetMapping("/user/{userId}")
-    public ResponseEntity<List<Application>> getMyApplications(@PathVariable Long userId) {
+    public ResponseEntity<List<Map<String, Object>>> getMyApplications(@PathVariable Long userId) {
         Long currentUserId = (Long) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (!currentUserId.equals(userId)) return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         return ResponseEntity.ok(applicationService.getByUser(userId));
     }
 
-    // GET /api/applications/club/{clubId}  — 동아리 신청자 목록 (ADMIN)
-    @PreAuthorize("hasRole('ADMIN')")
+    // GET /api/applications/club/{clubId} — 동아리 신청자 목록 (글로벌 ADMIN 또는 해당 클럽 관리자)
     @GetMapping("/club/{clubId}")
-    public ResponseEntity<List<Application>> getClubApplications(@PathVariable Long clubId) {
-        return ResponseEntity.ok(applicationService.getByClub(clubId));
+    public ResponseEntity<List<Map<String, Object>>> getClubApplications(@PathVariable Long clubId,
+                                                                          Authentication authentication) {
+        Long userId = (Long) authentication.getPrincipal();
+        boolean isAdmin    = authentication.getAuthorities().stream()
+            .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+        boolean isClubAdmin = clubService.isClubAdmin(clubId, userId);
+        if (!isAdmin && !isClubAdmin) return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        return ResponseEntity.<List<Map<String, Object>>>ok(applicationService.getByClub(clubId));
     }
 
-    // PATCH /api/applications/{appId}/status  — 승인/거절 (ADMIN)
-    @PreAuthorize("hasRole('ADMIN')")
+    // PATCH /api/applications/{appId}/status — 승인/거절 (글로벌 ADMIN 또는 해당 클럽 관리자)
     @PatchMapping("/{appId}/status")
     public ResponseEntity<Void> updateStatus(@PathVariable Long appId,
-                                             @RequestBody Map<String, String> body) {
+                                             @RequestBody Map<String, String> body,
+                                             Authentication authentication) {
+        Long userId = (Long) authentication.getPrincipal();
+        Long clubId = applicationService.getById(appId).getClubId();
+        boolean isAdmin     = authentication.getAuthorities().stream()
+            .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+        boolean isClubAdmin = clubService.isClubAdmin(clubId, userId);
+        if (!isAdmin && !isClubAdmin) return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         applicationService.updateStatus(appId, body.get("status"), body.get("comment"));
         return ResponseEntity.ok().build();
     }
