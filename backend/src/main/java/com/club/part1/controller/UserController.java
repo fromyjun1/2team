@@ -46,6 +46,20 @@ public class UserController {
         return ResponseEntity.ok(Map.of("available", userService.isEmailAvailable(email)));
     }
 
+    // GET /api/users/find-email?name=xxx&studentNo=xxx — 아이디(이메일) 찾기 (공개)
+    @GetMapping("/find-email")
+    public ResponseEntity<Map<String, String>> findEmail(@RequestParam String name,
+                                                         @RequestParam String studentNo) {
+        return ResponseEntity.ok(Map.of("email", userService.findEmail(name, studentNo)));
+    }
+
+    // PUT /api/users/change-password — 비밀번호 변경 (공개)
+    @PutMapping("/change-password")
+    public ResponseEntity<Void> changePassword(@RequestBody Map<String, String> body) {
+        userService.changePassword(body.get("email"), body.get("newPassword"));
+        return ResponseEntity.ok().build();
+    }
+
     // GET /api/users/me — 현재 토큰의 유저 정보 반환 (새로고침 후 로그인 유지용)
     @GetMapping("/me")
     public ResponseEntity<Map<String, Object>> getMe(Authentication authentication) {

@@ -44,6 +44,11 @@ export default function LoginPage({ onLogin }) {
           {error && <p style={styles.error}>{error}</p>}
           <button style={styles.btn} type="submit">로그인</button>
         </form>
+        <div style={styles.subLinks}>
+          <Link to="/find-account">아이디 찾기</Link>
+          <span style={{ color: '#ddd' }}>|</span>
+          <Link to="/find-account">비밀번호 변경</Link>
+        </div>
         <p style={styles.link}>
           계정이 없으신가요? <Link to="/signup">회원가입</Link>
         </p>
@@ -60,5 +65,6 @@ const styles = {
   input: { padding: '12px 16px', border: '1px solid #ddd', borderRadius: 8, fontSize: 14 },
   btn: { padding: '12px', background: '#4f46e5', color: '#fff', border: 'none', borderRadius: 8, fontSize: 15, cursor: 'pointer' },
   error: { color: '#e53e3e', fontSize: 13, margin: 0 },
-  link: { textAlign: 'center', marginTop: 16, fontSize: 13, color: '#666' },
+  subLinks: { display: 'flex', justifyContent: 'center', gap: 12, marginTop: 12, fontSize: 13, color: '#888' },
+  link: { textAlign: 'center', marginTop: 12, fontSize: 13, color: '#666' },
 };

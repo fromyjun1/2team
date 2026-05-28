@@ -32,8 +32,9 @@ public class SecurityConfig {
                 // 오류 페이지 — 누구나 접근 가능
                 .requestMatchers("/error").permitAll()
                 // 회원가입, 로그인, 이메일 중복 확인 — 누구나 접근 가능
-                .requestMatchers(HttpMethod.GET,  "/api/users/check-email").permitAll()
+                .requestMatchers(HttpMethod.GET,  "/api/users/check-email", "/api/users/find-email").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/users/signup", "/api/users/login").permitAll()
+                .requestMatchers(HttpMethod.PUT,  "/api/users/change-password").permitAll()
                 // 동아리 목록/상세 — 누구나 접근 가능
                 .requestMatchers(HttpMethod.GET, "/api/clubs", "/api/clubs/**").permitAll()
                 // 동아리 등록·수정·이미지 업로드 — 로그인 유저 (권한은 서비스 레이어에서 검증)

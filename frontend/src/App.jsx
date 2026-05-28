@@ -2,10 +2,11 @@ import { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, Link, useNavigate } from 'react-router-dom';
 
 import { getMe } from './api';
-import LoginPage      from './pages/part1/LoginPage';
-import SignupPage     from './pages/part1/SignupPage';
-import TagSelectPage  from './pages/part1/TagSelectPage';
-import MyPage         from './pages/part1/MyPage';
+import LoginPage       from './pages/part1/LoginPage';
+import SignupPage      from './pages/part1/SignupPage';
+import TagSelectPage   from './pages/part1/TagSelectPage';
+import MyPage          from './pages/part1/MyPage';
+import FindAccountPage from './pages/part1/FindAccountPage';
 
 import ClubGalleryPage  from './pages/part2/ClubGalleryPage';
 import ClubDetailPage   from './pages/part2/ClubDetailPage';
@@ -139,8 +140,9 @@ export default function App() {
       <div style={{ paddingTop: 64 }}>
         <Routes>
           {/* 공개 라우트 */}
-          <Route path="/login"  element={<LoginPage onLogin={handleLogin} />} />
-          <Route path="/signup" element={<SignupPage onSignup={handleLogin} />} />
+          <Route path="/login"        element={<LoginPage onLogin={handleLogin} />} />
+          <Route path="/signup"       element={<SignupPage onSignup={handleLogin} />} />
+          <Route path="/find-account" element={<FindAccountPage />} />
           <Route path="/clubs"  element={<ClubGalleryPage />} />
           <Route path="/clubs/:clubId" element={<ClubDetailPage userId={user?.userId} />} />
           <Route path="/clubs/new" element={<PrivateRoute user={user}><CreateClubPage /></PrivateRoute>} />

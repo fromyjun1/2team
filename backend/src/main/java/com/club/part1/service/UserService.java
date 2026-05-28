@@ -88,6 +88,31 @@ public class UserService {
         return result;
     }
 
+    public String findEmail(String name, String studentNo) {
+        User user = userRepository.findByUserNameAndStudentNo(name, studentNo)
+            .orElseThrow(() -> new IllegalArgumentException("일치하는 회원 정보를 찾을 수 없습니다."));
+        return maskEmail(user.getUserEmail());
+    }
+
+    private String maskEmail(String email) {
+        int at = email.indexOf('@');
+        if (at <= 1) return email;
+        String local  = email.substring(0, at);
+        String domain = email.substring(at);
+        if (local.length() <= 2) return local.charAt(0) + "***" + domain;
+        return local.charAt(0) + "*".repeat(local.length() - 2) + local.charAt(local.length() - 1) + domain;
+    }
+
+    @Transactional
+    public void changePassword(String email, String newPassword) {
+        if (!PW_PATTERN.matcher(newPassword).matches()) {
+            throw new IllegalArgumentException("비밀번호는 영문, 숫자, 특수문자를 모두 포함하여 8자 이상이어야 합니다.");
+        }
+        User user = userRepository.findByUserEmail(email)
+            .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 이메일입니다."));
+        user.setUserPw(passwordEncoder.encode(newPassword));
+    }
+
     @Transactional
     public void updateProfile(Long userId, String studentNo, String department, String certificatePath) {
         User user = userRepository.findById(userId)
