@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { getTags, updateTags } from '../../api';
 
 const ALL_TAGS = [
@@ -9,6 +10,8 @@ const ALL_TAGS = [
 ];
 
 export default function TagSelectPage({ userId, onSave }) {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [selected, setSelected] = useState([]);
   const [saved, setSaved] = useState(false);
 
@@ -27,6 +30,10 @@ export default function TagSelectPage({ userId, onSave }) {
     await updateTags(userId, selected);
     setSaved(true);
     if (onSave) onSave(selected);
+    const from = searchParams.get('from');
+    if (from) {
+      setTimeout(() => navigate(`/${from}`), 600);
+    }
   };
 
   return (

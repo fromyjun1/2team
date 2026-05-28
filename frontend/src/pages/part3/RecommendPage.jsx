@@ -28,8 +28,15 @@ export default function RecommendPage({ userId }) {
 
   return (
     <div style={styles.container}>
-      <h2 style={styles.title}>나에게 딱 맞는 동아리</h2>
-      <p style={styles.sub}>선택한 태그를 기반으로 추천된 결과입니다.</p>
+      <div style={styles.titleRow}>
+        <div>
+          <h2 style={styles.title}>나에게 딱 맞는 동아리</h2>
+          <p style={styles.sub}>선택한 태그를 기반으로 추천된 결과입니다.</p>
+        </div>
+        <button onClick={() => navigate('/tags?from=recommend')} style={styles.editTagBtn}>
+          태그 수정하기
+        </button>
+      </div>
 
       {results.length === 0 && (
         <div style={{ textAlign: 'center', marginTop: 40 }}>
@@ -82,8 +89,10 @@ export default function RecommendPage({ userId }) {
 
 const styles = {
   container: { maxWidth: 700, margin: '40px auto', padding: '0 20px' },
+  titleRow: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 28 },
   title: { fontSize: 22, marginBottom: 6 },
-  sub: { color: '#888', marginBottom: 28, fontSize: 14 },
+  sub: { color: '#888', fontSize: 14, margin: 0 },
+  editTagBtn: { padding: '8px 18px', background: '#fff', border: '1px solid #4f46e5', color: '#4f46e5', borderRadius: 8, fontSize: 13, cursor: 'pointer', whiteSpace: 'nowrap', alignSelf: 'center' },
   card: { display: 'flex', alignItems: 'center', gap: 16, background: '#fff', borderRadius: 12, padding: '20px 24px', marginBottom: 16, boxShadow: '0 2px 12px rgba(0,0,0,0.07)', position: 'relative' },
   rankBadge: { minWidth: 44, height: 44, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, fontSize: 13 },
   cardBody: { flex: 1 },
