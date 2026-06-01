@@ -105,6 +105,12 @@ public class UserService {
 
     @Transactional
     public void changePassword(String email, String newPassword) {
+        if (email == null || email.isBlank()) {
+            throw new IllegalArgumentException("이메일을 입력해주세요.");
+        }
+        if (newPassword == null || newPassword.isBlank()) {
+            throw new IllegalArgumentException("새 비밀번호를 입력해주세요.");
+        }
         if (!PW_PATTERN.matcher(newPassword).matches()) {
             throw new IllegalArgumentException("비밀번호는 영문, 숫자, 특수문자를 모두 포함하여 8자 이상이어야 합니다.");
         }

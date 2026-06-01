@@ -14,6 +14,7 @@ export default function TagSelectPage({ userId, onSave }) {
   const [searchParams] = useSearchParams();
   const [selected, setSelected] = useState([]);
   const [saved, setSaved] = useState(false);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     getTags(userId).then((res) => setSelected(res.data));
@@ -27,12 +28,21 @@ export default function TagSelectPage({ userId, onSave }) {
   };
 
   const handleSave = async () => {
-    await updateTags(userId, selected);
-    setSaved(true);
-    if (onSave) onSave(selected);
-    const from = searchParams.get('from');
-    if (from) {
-      setTimeout(() => navigate(`/${from}`), 600);
+    if (selected.length === 0) {
+      setError('태그를 최소 1개 이상 선택해주세요.');
+      return;
+    }
+    setError('');
+    try {
+      await updateTags(userId, selected);
+      setSaved(true);
+      if (onSave) onSave(selected);
+      const from = searchParams.get('from');
+      if (from) {
+        setTimeout(() => navigate(`/${from}`), 600);
+      }
+    } catch {
+      setError('저장 중 오류가 발생했습니다. 다시 시도해주세요.');
     }
   };
 
@@ -51,6 +61,7 @@ export default function TagSelectPage({ userId, onSave }) {
           </button>
         ))}
       </div>
+      {error && <p style={styles.error}>{error}</p>}
       <button style={styles.saveBtn} onClick={handleSave}>
         {saved ? '저장 완료!' : `선택 완료 (${selected.length}개)`}
       </button>
@@ -73,4 +84,5 @@ const styles = {
     width: '100%', padding: 14, background: '#4f46e5', color: '#fff',
     border: 'none', borderRadius: 10, fontSize: 15, cursor: 'pointer',
   },
+  error: { color: '#e53e3e', fontSize: 13, marginBottom: 8, textAlign: 'center' },
 };
