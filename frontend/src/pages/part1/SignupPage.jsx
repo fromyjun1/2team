@@ -62,7 +62,7 @@ export default function SignupPage({ onSignup }) {
     setError('');
     if (!PW_REGEX.test(form.password)) {
       setPwError('영문, 숫자, 특수문자(!@#$ 등)를 모두 포함하여 8자 이상 입력해주세요.');
-      //return; //경고만 뜨고 계속 진행
+      return;
     }
     if (form.password !== form.confirmPassword) {
       setConfirmError('비밀번호가 일치하지 않습니다.');
