@@ -35,6 +35,8 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET,  "/api/users/check-email", "/api/users/find-email").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/users/signup", "/api/users/login").permitAll()
                 .requestMatchers(HttpMethod.PUT,  "/api/users/change-password").permitAll()
+                // 업로드된 이미지 — 누구나 접근 가능
+                .requestMatchers("/images/**").permitAll()
                 // 동아리 목록/상세 — 누구나 접근 가능
                 .requestMatchers(HttpMethod.GET, "/api/clubs", "/api/clubs/**").permitAll()
                 // 동아리 등록·수정·이미지 업로드 — 로그인 유저 (권한은 서비스 레이어에서 검증)

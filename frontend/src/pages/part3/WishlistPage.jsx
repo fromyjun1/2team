@@ -17,7 +17,7 @@ export default function WishlistPage({ userId }) {
     setList((p) => p.filter((c) => c.clubId !== clubId));
   };
 
-  if (loading) return <p style={{ textAlign: 'center', marginTop: 80 }}>불러오는 중...</p>;
+  if (loading) return <p style={{ textAlign: 'center', marginTop: 80, color: '#ff6b35', fontWeight: 700 }}>불러오는 중...</p>;
 
   return (
     <div style={styles.container}>
@@ -52,18 +52,18 @@ export default function WishlistPage({ userId }) {
 
 const styles = {
   container: { maxWidth: 700, margin: '40px auto', padding: '0 20px' },
-  title: { fontSize: 22, marginBottom: 24 },
-  empty: { textAlign: 'center', padding: '80px 0', color: '#aaa' },
-  goBtn: { marginTop: 16, padding: '10px 24px', background: '#4f46e5', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 14 },
-  card: { display: 'flex', gap: 16, justifyContent: 'space-between', alignItems: 'center', background: '#fff', borderRadius: 12, padding: '20px 24px', marginBottom: 14, boxShadow: '0 2px 10px rgba(0,0,0,0.06)' },
+  title: { fontSize: 22, fontWeight: 800, marginBottom: 24, color: '#2d1b0e' },
+  empty: { textAlign: 'center', padding: '80px 0', color: '#b08070' },
+  goBtn: { marginTop: 16, padding: '10px 24px', background: '#ff6b35', color: '#fff', border: 'none', borderRadius: 100, fontWeight: 700, cursor: 'pointer', fontSize: 14 },
+  card: { display: 'flex', gap: 16, justifyContent: 'space-between', alignItems: 'center', background: '#fff', borderRadius: 20, padding: '20px 24px', marginBottom: 14, boxShadow: '0 4px 20px rgba(255,107,53,0.08)', border: '2px solid #ffe8db' },
   left: { flex: 1 },
-  clubName: { margin: '0 0 6px', fontSize: 17 },
-  desc: { color: '#666', fontSize: 13, margin: '0 0 10px' },
+  clubName: { margin: '0 0 6px', fontSize: 17, fontWeight: 800, color: '#2d1b0e' },
+  desc: { color: '#7c5a4a', fontSize: 13, margin: '0 0 10px' },
   barRow: { display: 'flex', alignItems: 'center', gap: 10 },
-  pct: { fontSize: 13, color: '#4f46e5', fontWeight: 700, minWidth: 60 },
-  barBg: { flex: 1, height: 6, background: '#e5e7eb', borderRadius: 4, overflow: 'hidden' },
-  barFill: { height: '100%', background: '#4f46e5', borderRadius: 4 },
+  pct: { fontSize: 13, color: '#ff6b35', fontWeight: 700, minWidth: 60 },
+  barBg: { flex: 1, height: 6, background: '#ffe0d0', borderRadius: 4, overflow: 'hidden' },
+  barFill: { height: '100%', background: '#ff6b35', borderRadius: 4 },
   btnCol: { display: 'flex', flexDirection: 'column', gap: 8 },
-  detailBtn: { padding: '8px 16px', border: '1px solid #4f46e5', borderRadius: 8, color: '#4f46e5', background: '#fff', cursor: 'pointer', fontSize: 13 },
-  removeBtn: { padding: '8px 16px', border: '1px solid #fca5a5', borderRadius: 8, color: '#ef4444', background: '#fff', cursor: 'pointer', fontSize: 13 },
+  detailBtn: { padding: '8px 16px', border: '2px solid #ff6b35', borderRadius: 100, color: '#ff6b35', background: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 600 },
+  removeBtn: { padding: '8px 16px', border: '1px solid #fca5a5', borderRadius: 100, color: '#ef4444', background: '#fff', cursor: 'pointer', fontSize: 13 },
 };

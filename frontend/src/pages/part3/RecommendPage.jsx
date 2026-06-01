@@ -24,7 +24,7 @@ export default function RecommendPage({ userId }) {
     );
   };
 
-  if (loading) return <p style={{ textAlign: 'center', marginTop: 60 }}>매칭 중...</p>;
+  if (loading) return <p style={{ textAlign: 'center', marginTop: 60, color: '#ff6b35', fontWeight: 700 }}>매칭 중...</p>;
 
   return (
     <div style={styles.container}>
@@ -65,7 +65,7 @@ export default function RecommendPage({ userId }) {
             {/* 일치율 바 */}
             <div style={styles.matchRow}>
               <span style={styles.matchLabel}>
-                회원님과 <strong style={{ color: '#4f46e5' }}>{club.scorePct}%</strong> 일치
+                회원님과 <strong style={{ color: '#ff6b35' }}>{club.scorePct}%</strong> 일치
                 &nbsp;({club.matchCount}/{club.totalTags} 태그)
               </span>
               <div style={styles.barBg}>
@@ -90,20 +90,20 @@ export default function RecommendPage({ userId }) {
 const styles = {
   container: { maxWidth: 700, margin: '40px auto', padding: '0 20px' },
   titleRow: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 28 },
-  title: { fontSize: 22, marginBottom: 6 },
-  sub: { color: '#888', fontSize: 14, margin: 0 },
-  editTagBtn: { padding: '8px 18px', background: '#fff', border: '1px solid #4f46e5', color: '#4f46e5', borderRadius: 8, fontSize: 13, cursor: 'pointer', whiteSpace: 'nowrap', alignSelf: 'center' },
-  card: { display: 'flex', alignItems: 'center', gap: 16, background: '#fff', borderRadius: 12, padding: '20px 24px', marginBottom: 16, boxShadow: '0 2px 12px rgba(0,0,0,0.07)', position: 'relative' },
+  title: { fontSize: 22, fontWeight: 800, marginBottom: 6, color: '#2d1b0e' },
+  sub: { color: '#7c5a4a', fontSize: 14, margin: 0 },
+  editTagBtn: { padding: '8px 18px', background: '#fff', border: '2px solid #ff6b35', color: '#ff6b35', borderRadius: 100, fontSize: 13, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap', alignSelf: 'center' },
+  card: { display: 'flex', alignItems: 'center', gap: 16, background: '#fff', borderRadius: 20, padding: '20px 24px', marginBottom: 16, boxShadow: '0 4px 20px rgba(255,107,53,0.08)', border: '2px solid #ffe8db', position: 'relative' },
   rankBadge: { minWidth: 44, height: 44, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, fontSize: 13 },
   cardBody: { flex: 1 },
   clubNameLink: { textDecoration: 'none', color: 'inherit' },
-  clubName: { margin: '0 0 4px', fontSize: 17 },
-  desc: { margin: '0 0 10px', color: '#666', fontSize: 13 },
+  clubName: { margin: '0 0 4px', fontSize: 17, fontWeight: 800, color: '#2d1b0e' },
+  desc: { margin: '0 0 10px', color: '#7c5a4a', fontSize: 13 },
   matchRow: { display: 'flex', flexDirection: 'column', gap: 4 },
-  matchLabel: { fontSize: 13, color: '#444' },
-  barBg: { height: 6, background: '#e5e7eb', borderRadius: 4, overflow: 'hidden' },
-  barFill: { height: '100%', background: '#4f46e5', borderRadius: 4, transition: 'width 0.4s' },
-  wishBtn: { padding: '8px 14px', border: '1px solid #ddd', borderRadius: 20, background: '#fff', cursor: 'pointer', fontSize: 13, whiteSpace: 'nowrap' },
-  wished: { background: '#fef2f2', borderColor: '#fca5a5', color: '#ef4444' },
-  tagBtn: { padding: '10px 28px', background: '#4f46e5', color: '#fff', border: 'none', borderRadius: 8, fontSize: 14, cursor: 'pointer' },
+  matchLabel: { fontSize: 13, color: '#7c5a4a' },
+  barBg: { height: 6, background: '#ffe0d0', borderRadius: 4, overflow: 'hidden' },
+  barFill: { height: '100%', background: '#ff6b35', borderRadius: 4, transition: 'width 0.4s' },
+  wishBtn: { padding: '8px 14px', border: '2px solid #ffe0d0', borderRadius: 100, background: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 600, whiteSpace: 'nowrap', color: '#7c5a4a' },
+  wished: { background: '#fff0e8', borderColor: '#ff6b35', color: '#ff6b35' },
+  tagBtn: { padding: '10px 28px', background: '#ff6b35', color: '#fff', border: 'none', borderRadius: 100, fontSize: 14, fontWeight: 700, cursor: 'pointer' },
 };

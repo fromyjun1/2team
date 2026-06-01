@@ -43,12 +43,12 @@ export default function ApplicationPage({ userId }) {
 
 const styles = {
   container:   { maxWidth: 620, margin: '40px auto', padding: '0 20px' },
-  title:       { fontSize: 22, marginBottom: 24 },
-  appCard:        { background: '#fff', borderRadius: 10, padding: '18px 22px', marginBottom: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.05)' },
+  title:       { fontSize: 22, fontWeight: 800, marginBottom: 24, color: '#2d1b0e' },
+  appCard:        { background: '#fff', borderRadius: 20, padding: '18px 22px', marginBottom: 12, boxShadow: '0 4px 20px rgba(255,107,53,0.08)', border: '2px solid #ffe8db' },
   cardTop:        { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
-  motivationText: { fontSize: 14, color: '#444', lineHeight: 1.6, margin: '0 0 8px', whiteSpace: 'pre-wrap' },
-  metaText:       { color: '#aaa', fontSize: 12, margin: '4px 0 0' },
+  motivationText: { fontSize: 14, color: '#7c5a4a', lineHeight: 1.6, margin: '0 0 8px', whiteSpace: 'pre-wrap' },
+  metaText:       { color: '#b08070', fontSize: 12, margin: '4px 0 0' },
   commentText:    { color: '#ef4444', fontSize: 13, margin: '6px 0 0' },
-  badge:          { padding: '4px 12px', borderRadius: 20, color: '#fff', fontSize: 12, fontWeight: 600, flexShrink: 0 },
-  emptyMsg:       { textAlign: 'center', color: '#aaa', marginTop: 60 },
+  badge:          { padding: '4px 12px', borderRadius: 100, color: '#fff', fontSize: 12, fontWeight: 700, flexShrink: 0 },
+  emptyMsg:       { textAlign: 'center', color: '#b08070', marginTop: 60 },
 };

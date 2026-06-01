@@ -97,7 +97,7 @@ export default function SignupPage({ onSignup }) {
                 borderColor: emailStatus === 'available' ? '#16a34a'
                            : emailStatus === 'taken'     ? '#e53e3e'
                            : emailStatus === 'checking'  ? '#d97706'
-                           : '#ddd'
+                           : '#ffe0d0'
               }}
               type="email"
               placeholder="이메일"
@@ -112,7 +112,7 @@ export default function SignupPage({ onSignup }) {
           <div>
             <div style={{ position: 'relative' }}>
               <input
-                style={{ ...styles.input, width: '100%', boxSizing: 'border-box', paddingRight: 64, borderColor: pwError ? '#e53e3e' : '#ddd' }}
+                style={{ ...styles.input, width: '100%', boxSizing: 'border-box', paddingRight: 64, borderColor: pwError ? '#e53e3e' : '#ffe0d0' }}
                 type={showPw ? 'text' : 'password'}
                 placeholder="비밀번호 (영문+숫자+특수문자, 8자 이상)"
                 value={form.password}
@@ -140,7 +140,7 @@ export default function SignupPage({ onSignup }) {
           <div>
             <div style={{ position: 'relative' }}>
               <input
-                style={{ ...styles.input, width: '100%', boxSizing: 'border-box', paddingRight: 64, borderColor: confirmError ? '#e53e3e' : '#ddd' }}
+                style={{ ...styles.input, width: '100%', boxSizing: 'border-box', paddingRight: 64, borderColor: confirmError ? '#e53e3e' : '#ffe0d0' }}
                 type={showConfirm ? 'text' : 'password'}
                 placeholder="비밀번호 확인"
                 value={form.confirmPassword}
@@ -164,14 +164,14 @@ export default function SignupPage({ onSignup }) {
 }
 
 const styles = {
-  container: { display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', background: '#f5f5f5' },
-  card: { background: '#fff', borderRadius: 12, padding: 40, width: 380, boxShadow: '0 4px 20px rgba(0,0,0,0.1)' },
-  title: { textAlign: 'center', marginBottom: 24, fontSize: 20 },
-  form: { display: 'flex', flexDirection: 'column', gap: 10 },
-  input: { padding: '11px 14px', border: '1px solid #ddd', borderRadius: 8, fontSize: 14 },
-  btn: { padding: 12, background: '#4f46e5', color: '#fff', border: 'none', borderRadius: 8, fontSize: 15, cursor: 'pointer', marginTop: 4 },
+  container: { display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', background: 'linear-gradient(135deg, #fff9f5 0%, #ffe8db 100%)' },
+  card: { background: '#fff', borderRadius: 20, padding: 40, width: 420, boxShadow: '0 8px 40px rgba(255,107,53,0.12)' },
+  title: { textAlign: 'center', marginBottom: 24, fontSize: 24, fontWeight: 900, color: '#2d1b0e' },
+  form: { display: 'flex', flexDirection: 'column', gap: 12 },
+  input: { padding: '13px 16px', border: '2px solid #ffe0d0', borderRadius: 14, fontSize: 14, fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box' },
+  btn: { padding: 14, background: '#ff6b35', color: '#fff', border: 'none', borderRadius: 14, fontSize: 16, fontWeight: 800, cursor: 'pointer', marginTop: 4, fontFamily: 'inherit' },
   error: { color: '#e53e3e', fontSize: 13 },
   hint:   { fontSize: 12, marginTop: 4, marginBottom: 0 },
-  eyeBtn: { position: 'absolute', right: 0, top: 0, bottom: 0, padding: '0 12px', border: 'none', background: 'transparent', color: '#888', fontSize: 12, cursor: 'pointer' },
-  link: { textAlign: 'center', marginTop: 16, fontSize: 13, color: '#666' },
+  eyeBtn: { position: 'absolute', right: 0, top: 0, bottom: 0, padding: '0 14px', border: 'none', background: 'transparent', color: '#b08070', fontSize: 12, cursor: 'pointer', fontFamily: 'inherit' },
+  link: { textAlign: 'center', marginTop: 16, fontSize: 13, color: '#7c5a4a' },
 };

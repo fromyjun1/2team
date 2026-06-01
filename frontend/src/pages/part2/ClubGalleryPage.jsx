@@ -4,12 +4,21 @@ import { getClubs } from '../../api';
 
 const CATEGORIES = ['전체', '문화/예술', '스포츠', '학술', '봉사', '기타'];
 
+const CATEGORY_EMOJI = {
+  '전체': '🎪',
+  '문화/예술': '🎵',
+  '스포츠': '⚽',
+  '학술': '💡',
+  '봉사': '🤝',
+  '기타': '🎮',
+};
+
 export default function ClubGalleryPage() {
   const navigate = useNavigate();
   const inputRef = useRef(null);
   const [clubs, setClubs]       = useState([]);
   const [category, setCategory] = useState('전체');
-  const [chips, setChips]       = useState([]);   // [{ word, exclude }]
+  const [chips, setChips]       = useState([]);
   const [inputVal, setInputVal] = useState('');
 
   useEffect(() => {
@@ -79,110 +88,142 @@ export default function ClubGalleryPage() {
   const hasFilter = chips.length > 0 || strippedCurrentWord.length > 0;
 
   return (
-    <div style={styles.container}>
-      <h2 style={styles.title}>동아리 목록</h2>
+    <div style={{ background: '#fff9f5', minHeight: '100vh' }}>
+      {/* 배너 */}
+      <div style={styles.banner}>
+        <div style={styles.bannerLeft}>
+          <h1 style={styles.bannerTitle}>내 취향에 딱!<br />동아리 매칭 🎯</h1>
+          <p style={styles.bannerDesc}>관심 태그를 선택하면 AI가 나에게 맞는<br />동아리를 추천해드려요</p>
+          <div style={styles.bannerSearch} onClick={() => inputRef.current?.focus()}>
+            {chips.map((chip, i) => (
+              <span
+                key={i}
+                style={chip.exclude ? styles.chipExclude : styles.chipInclude}
+                onClick={(e) => { e.stopPropagation(); removeChip(i); }}
+              >
+                {chip.exclude ? '-' : ''}{chip.word.startsWith('#') ? chip.word : '#' + chip.word}
+                <span style={{ marginLeft: 4, fontSize: 11, opacity: 0.7 }}> ✕</span>
+              </span>
+            ))}
+            <input
+              ref={inputRef}
+              style={styles.bannerInput}
+              type="text"
+              placeholder={chips.length === 0 ? '동아리명 또는 #태그 검색' : ''}
+              value={inputVal}
+              onChange={handleInputChange}
+              onKeyDown={handleKeyDown}
+            />
+            {hasFilter && (
+              <button style={styles.clearBtn} onClick={(e) => { e.stopPropagation(); setChips([]); setInputVal(''); }}>✕</button>
+            )}
+            <button style={styles.searchBtn}>검색</button>
+          </div>
+        </div>
+        <div style={{ fontSize: 100, lineHeight: 1 }}>🎪</div>
+      </div>
 
-      {/* 검색창 */}
-      <div style={styles.searchBox} onClick={() => inputRef.current?.focus()}>
-        <span style={styles.searchIcon}>🔍</span>
+      <div style={styles.section}>
+        {/* 인기 카테고리 */}
+        <div style={styles.sectionTitle}>인기 카테고리</div>
+        <div style={styles.popular}>
+          {CATEGORIES.filter(c => c !== '전체').map((c) => (
+            <div key={c} style={{ ...styles.popItem, ...(category === c ? styles.popItemActive : {}) }} onClick={() => setCategory(c)}>
+              <div style={styles.popEmoji}>{CATEGORY_EMOJI[c]}</div>
+              <div style={styles.popName}>{c}</div>
+            </div>
+          ))}
+        </div>
 
-        {/* 칩 목록 */}
-        {chips.map((chip, i) => (
-          <span
-            key={i}
-            style={chip.exclude ? styles.chipExclude : styles.chipInclude}
-            onClick={(e) => { e.stopPropagation(); removeChip(i); }}
-          >
-            {chip.exclude ? '-' : ''}{chip.word.startsWith('#') ? chip.word : '#' + chip.word}
-            <span style={styles.chipX}> ✕</span>
-          </span>
-        ))}
+        {/* 동아리 목록 */}
+        <div style={styles.sectionTitle}>
+          전체 동아리{' '}
+          <span style={{ color: '#ff6b35' }}>({filtered.length})</span>
+        </div>
 
-        <input
-          ref={inputRef}
-          style={styles.searchInput}
-          type="text"
-          placeholder={chips.length === 0 ? '태그 또는 동아리명 검색 (예: 축구   -제외태그)' : ''}
-          value={inputVal}
-          onChange={handleInputChange}
-          onKeyDown={handleKeyDown}
-        />
+        {/* 카테고리 칩 */}
+        <div style={styles.chips}>
+          {CATEGORIES.map((c) => (
+            <button
+              key={c}
+              style={{ ...styles.chip, ...(category === c ? styles.chipActive : {}) }}
+              onClick={() => setCategory(c)}
+            >
+              {c}
+            </button>
+          ))}
+        </div>
 
         {hasFilter && (
-          <button style={styles.clearBtn} onClick={(e) => { e.stopPropagation(); setChips([]); setInputVal(''); }}>
-            ✕
-          </button>
+          <p style={{ fontSize: 13, color: '#7c5a4a', marginBottom: 12 }}>검색 결과 {filtered.length}개</p>
         )}
-      </div>
 
-      {/* 카테고리 필터 */}
-      <div style={styles.filterRow}>
-        {CATEGORIES.map((c) => (
-          <button
-            key={c}
-            style={{ ...styles.filterBtn, ...(category === c ? styles.filterActive : {}) }}
-            onClick={() => setCategory(c)}
-          >
-            {c}
-          </button>
-        ))}
-      </div>
-
-      {/* 검색 결과 안내 */}
-      {hasFilter && (
-        <p style={styles.resultInfo}>검색 결과 {filtered.length}개</p>
-      )}
-
-      {/* 카드 그리드 */}
-      <div style={styles.grid}>
-        {filtered.length === 0 && hasFilter && (
-          <p style={{ color: '#aaa', fontSize: 14, gridColumn: '1/-1' }}>검색 결과가 없습니다.</p>
-        )}
-        {filtered.map((club) => (
-          <div key={club.clubId} style={styles.card} onClick={() => navigate(`/clubs/${club.clubId}`)}>
-            <div style={styles.imgBox}>
-              {club.imagePath
-                ? <img src={`/images/clubs/${club.imagePath}`} alt={club.clubName} style={styles.img} />
-                : <div style={styles.imgPlaceholder}>{club.clubName[0]}</div>
-              }
+        {/* 카드 그리드 */}
+        <div style={styles.grid}>
+          {filtered.length === 0 && hasFilter && (
+            <p style={{ color: '#b08070', fontSize: 14, gridColumn: '1/-1' }}>검색 결과가 없습니다.</p>
+          )}
+          {filtered.map((club) => (
+            <div key={club.clubId} style={styles.card} onClick={() => navigate(`/clubs/${club.clubId}`)}>
+              <div style={styles.cardImg}>
+                {club.imagePath
+                  ? <img src={`/images/clubs/${club.imagePath}`} alt={club.clubName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  : <div style={{ fontSize: 56 }}>{CATEGORY_EMOJI[club.category] ?? '🎪'}</div>
+                }
+              </div>
+              <div style={styles.cardBody}>
+                <span style={styles.cardCat}>{club.category}</span>
+                <h3 style={styles.cardName}>{club.clubName}</h3>
+                <p style={styles.cardDesc}>{club.description?.slice(0, 50)}...</p>
+                <div style={styles.cardBottom}>
+                  <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                    {club.tags?.slice(0, 2).map((t, i) => (
+                      <span key={i} style={styles.tag}>{t.tagName}</span>
+                    ))}
+                  </div>
+                </div>
+              </div>
             </div>
-            <div style={styles.cardBody}>
-              <span style={styles.category}>{club.category}</span>
-              <h3 style={styles.clubName}>{club.clubName}</h3>
-              <p style={styles.desc}>{club.description?.slice(0, 50)}...</p>
-            </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </div>
   );
 }
 
 const styles = {
-  container:    { maxWidth: 900, margin: '40px auto', padding: '0 20px' },
-  title:        { fontSize: 22, marginBottom: 20 },
+  banner: { background: 'linear-gradient(120deg, #ff6b35 0%, #ff9a5c 50%, #ffb347 100%)', padding: '56px 40px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' },
+  bannerLeft: { flex: 1 },
+  bannerTitle: { fontSize: 38, fontWeight: 900, color: '#fff', letterSpacing: '-1px', lineHeight: 1.2, marginBottom: 10 },
+  bannerDesc: { fontSize: 16, color: 'rgba(255,255,255,0.85)', marginBottom: 24 },
+  bannerSearch: { display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 6, background: '#fff', borderRadius: 100, overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,0.15)', padding: '6px 6px 6px 20px', maxWidth: 520, cursor: 'text' },
+  bannerInput: { flex: 1, minWidth: 120, border: 'none', outline: 'none', fontSize: 14, color: '#333', background: 'transparent' },
+  clearBtn: { background: 'none', border: 'none', cursor: 'pointer', color: '#aaa', fontSize: 14, padding: '0 4px' },
+  searchBtn: { padding: '10px 20px', background: '#ff6b35', color: '#fff', border: 'none', fontSize: 14, fontWeight: 700, cursor: 'pointer', borderRadius: 100 },
 
-  searchBox:    { display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 6, background: '#fff', border: '1px solid #ddd', borderRadius: 10, padding: '8px 12px', marginBottom: 16, boxShadow: '0 1px 4px rgba(0,0,0,0.05)', cursor: 'text' },
-  searchIcon:   { fontSize: 15, color: '#aaa', flexShrink: 0 },
-  searchInput:  { flex: 1, minWidth: 120, border: 'none', outline: 'none', fontSize: 14, color: '#333', padding: '2px 0' },
-  clearBtn:     { background: 'none', border: 'none', cursor: 'pointer', color: '#aaa', fontSize: 14, padding: '0 2px', flexShrink: 0 },
+  chipInclude: { display: 'inline-flex', alignItems: 'center', padding: '3px 10px', borderRadius: 20, border: '1.5px solid #ff6b35', color: '#ff6b35', fontSize: 13, fontWeight: 600, background: '#fff0e8', cursor: 'pointer', userSelect: 'none' },
+  chipExclude: { display: 'inline-flex', alignItems: 'center', padding: '3px 10px', borderRadius: 20, border: '1.5px solid #ef4444', color: '#ef4444', fontSize: 13, fontWeight: 600, background: '#fef2f2', cursor: 'pointer', userSelect: 'none' },
 
-  chipInclude:  { display: 'inline-flex', alignItems: 'center', padding: '3px 10px', borderRadius: 20, border: '1.5px solid #4f46e5', color: '#4f46e5', fontSize: 13, fontWeight: 600, background: '#eef2ff', cursor: 'pointer', userSelect: 'none' },
-  chipExclude:  { display: 'inline-flex', alignItems: 'center', padding: '3px 10px', borderRadius: 20, border: '1.5px solid #ef4444', color: '#ef4444', fontSize: 13, fontWeight: 600, background: '#fef2f2', cursor: 'pointer', userSelect: 'none' },
-  chipX:        { marginLeft: 4, fontSize: 11, opacity: 0.7 },
+  section: { padding: '32px 40px', maxWidth: 1200, margin: '0 auto' },
+  sectionTitle: { fontSize: 20, fontWeight: 800, marginBottom: 16, color: '#2d1b0e' },
 
-  resultInfo:   { fontSize: 13, color: '#666', marginBottom: 12 },
-  filterRow:    { display: 'flex', gap: 8, marginBottom: 24 },
-  filterBtn:    { padding: '7px 16px', borderRadius: 20, border: '1px solid #ddd', background: '#fff', cursor: 'pointer', fontSize: 13 },
-  filterActive: { background: '#4f46e5', color: '#fff', borderColor: '#4f46e5' },
+  popular: { display: 'flex', gap: 12, overflowX: 'auto', paddingBottom: 8, marginBottom: 32 },
+  popItem: { minWidth: 130, background: '#fff', borderRadius: 16, padding: 16, textAlign: 'center', border: '2px solid #ffe8db', cursor: 'pointer', transition: 'border-color 0.15s' },
+  popItemActive: { border: '2px solid #ff6b35', background: '#fff0e8' },
+  popEmoji: { fontSize: 36, marginBottom: 8 },
+  popName: { fontSize: 13, fontWeight: 700, color: '#2d1b0e' },
 
-  grid:         { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: 20 },
-  card:         { borderRadius: 12, overflow: 'hidden', boxShadow: '0 2px 12px rgba(0,0,0,0.08)', cursor: 'pointer', background: '#fff', transition: 'transform 0.15s' },
-  imgBox:       { height: 140, overflow: 'hidden', background: '#f0f0f0' },
-  img:          { width: '100%', height: '100%', objectFit: 'cover' },
-  imgPlaceholder: { display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', fontSize: 40, color: '#999' },
-  cardBody:     { padding: '14px 16px' },
-  category:     { fontSize: 11, color: '#4f46e5', fontWeight: 600, textTransform: 'uppercase' },
-  clubName:     { margin: '4px 0 6px', fontSize: 16 },
-  desc:         { fontSize: 13, color: '#666', margin: 0 },
+  chips: { display: 'flex', gap: 8, marginBottom: 24, flexWrap: 'wrap' },
+  chip: { padding: '8px 18px', borderRadius: 100, border: '2px solid #ffe0d0', background: '#fff', fontSize: 13, cursor: 'pointer', color: '#7c5a4a', fontWeight: 600 },
+  chipActive: { background: '#ff6b35', color: '#fff', borderColor: '#ff6b35' },
+
+  grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 20 },
+  card: { background: '#fff', borderRadius: 20, overflow: 'hidden', boxShadow: '0 4px 20px rgba(255,107,53,0.08)', border: '2px solid #ffe8db', cursor: 'pointer', transition: 'all 0.2s' },
+  cardImg: { height: 150, background: 'linear-gradient(135deg, #fff0e8, #ffe0cc)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+  cardBody: { padding: '16px 18px 18px' },
+  cardCat: { display: 'inline-block', fontSize: 11, fontWeight: 700, color: '#ff6b35', background: '#fff0e8', padding: '3px 10px', borderRadius: 100, marginBottom: 8 },
+  cardName: { fontSize: 17, fontWeight: 800, marginBottom: 6, color: '#2d1b0e' },
+  cardDesc: { fontSize: 13, color: '#7c5a4a', lineHeight: 1.5, marginBottom: 14 },
+  cardBottom: { display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
+  tag: { fontSize: 11, padding: '3px 8px', borderRadius: 100, background: '#fff0e8', color: '#ff6b35', fontWeight: 600 },
 };

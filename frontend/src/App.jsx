@@ -24,7 +24,7 @@ import QnaPage         from './pages/part4/QnaPage';
 function Navbar({ user, onLogout }) {
   return (
     <nav style={nav.bar}>
-      <Link to="/" style={nav.logo}>🎓 동아리 매칭</Link>
+      <Link to="/" style={nav.logo}>🎯 동아리 매칭</Link>
       <div style={nav.links}>
         <Link to="/clubs" style={nav.link}>동아리 탐색</Link>
         <Link to="/recommend" style={nav.link}>추천 받기</Link>
@@ -69,13 +69,13 @@ function ProfileRequiredRoute({ user, children }) {
       <div style={{ maxWidth: 480, margin: '80px auto', textAlign: 'center', padding: '0 20px' }}>
         <div style={{ background: '#fff', borderRadius: 16, padding: '48px 40px', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }}>
           <div style={{ fontSize: 48, marginBottom: 16 }}>📋</div>
-          <h2 style={{ marginBottom: 12, color: '#1a1a2e', fontSize: 20 }}>학생 정보를 입력해주세요</h2>
-          <p style={{ color: '#666', lineHeight: 1.7, marginBottom: 28, fontSize: 14 }}>
+          <h2 style={{ marginBottom: 12, color: '#2d1b0e', fontSize: 20, fontWeight: 800 }}>학생 정보를 입력해주세요</h2>
+          <p style={{ color: '#7c5a4a', lineHeight: 1.7, marginBottom: 28, fontSize: 14 }}>
             추천받기, 찜 목록, 신청 현황 기능은<br />학번·학과 정보 입력 후 이용하실 수 있습니다.
           </p>
           <button
             onClick={() => navigate('/mypage?tab=profile')}
-            style={{ padding: '12px 32px', background: '#4f46e5', color: '#fff', border: 'none', borderRadius: 8, fontSize: 15, cursor: 'pointer' }}
+            style={{ padding: '12px 32px', background: '#ff6b35', color: '#fff', border: 'none', borderRadius: 100, fontSize: 15, fontWeight: 700, cursor: 'pointer' }}
           >
             정보 입력하러 가기
           </button>
@@ -128,8 +128,8 @@ export default function App() {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-        <div style={{ color: '#4f46e5', fontSize: 16 }}>로딩 중...</div>
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: '#fff9f5' }}>
+        <div style={{ color: '#ff6b35', fontSize: 16, fontWeight: 700 }}>로딩 중...</div>
       </div>
     );
   }
@@ -166,11 +166,11 @@ export default function App() {
 }
 
 const nav = {
-  bar: { position: 'fixed', top: 0, left: 0, right: 0, height: 64, background: '#fff', borderBottom: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', padding: '0 32px', gap: 32, zIndex: 100, boxShadow: '0 1px 4px rgba(0,0,0,0.06)' },
-  logo: { fontWeight: 700, fontSize: 18, color: '#4f46e5', textDecoration: 'none', marginRight: 8 },
-  links: { display: 'flex', gap: 20, flex: 1 },
-  link: { color: '#555', fontSize: 14, textDecoration: 'none' },
-  right: { display: 'flex', gap: 12, alignItems: 'center' },
-  btn: { padding: '6px 14px', border: '1px solid #ddd', borderRadius: 6, background: '#fff', cursor: 'pointer', fontSize: 13 },
-  signupBtn: { background: '#4f46e5', color: '#fff', padding: '6px 14px', borderRadius: 6 },
+  bar: { position: 'fixed', top: 0, left: 0, right: 0, height: 64, background: '#fff', boxShadow: '0 2px 12px rgba(255,120,60,0.08)', display: 'flex', alignItems: 'center', padding: '0 40px', gap: 32, zIndex: 100 },
+  logo: { fontWeight: 900, fontSize: 20, color: '#ff6b35', textDecoration: 'none', marginRight: 8 },
+  links: { display: 'flex', gap: 28, flex: 1 },
+  link: { color: '#7c5a4a', fontSize: 14, textDecoration: 'none', fontWeight: 600 },
+  right: { display: 'flex', gap: 10, alignItems: 'center' },
+  btn: { padding: '8px 18px', border: '2px solid #ff6b35', borderRadius: 100, background: '#fff', cursor: 'pointer', fontSize: 14, color: '#ff6b35', fontWeight: 700 },
+  signupBtn: { background: '#ff6b35', color: '#fff', padding: '8px 18px', borderRadius: 100, border: 'none', fontWeight: 700 },
 };
