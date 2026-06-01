@@ -22,6 +22,8 @@ export default function SignupPage({ onSignup }) {
   const [error, setError] = useState('');
   const [pwError, setPwError] = useState('');
   const [confirmError, setConfirmError] = useState('');
+  const [showPw, setShowPw] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   // null | 'checking' | 'available' | 'taken'
   const [emailStatus, setEmailStatus] = useState(null);
 
@@ -108,14 +110,19 @@ export default function SignupPage({ onSignup }) {
             {emailStatus === 'taken'     && <p style={{ ...styles.hint, color: '#e53e3e' }}>✗ 이미 사용 중인 이메일입니다.</p>}
           </div>
           <div>
-            <input
-              style={{ ...styles.input, width: '100%', boxSizing: 'border-box', borderColor: pwError ? '#e53e3e' : '#ddd' }}
-              type="password"
-              placeholder="비밀번호 (영문+숫자+특수문자, 8자 이상)"
-              value={form.password}
-              onChange={set('password')}
-              required
-            />
+            <div style={{ position: 'relative' }}>
+              <input
+                style={{ ...styles.input, width: '100%', boxSizing: 'border-box', paddingRight: 64, borderColor: pwError ? '#e53e3e' : '#ddd' }}
+                type={showPw ? 'text' : 'password'}
+                placeholder="비밀번호 (영문+숫자+특수문자, 8자 이상)"
+                value={form.password}
+                onChange={set('password')}
+                required
+              />
+              <button type="button" style={styles.eyeBtn} onClick={() => setShowPw(!showPw)}>
+                {showPw ? '숨기기' : '표시'}
+              </button>
+            </div>
             {strength && (
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
                 <div style={{ flex: 1, height: 4, borderRadius: 2, background: '#e5e7eb' }}>
@@ -131,14 +138,19 @@ export default function SignupPage({ onSignup }) {
             {pwError && <p style={styles.error}>{pwError}</p>}
           </div>
           <div>
-            <input
-              style={{ ...styles.input, width: '100%', boxSizing: 'border-box', borderColor: confirmError ? '#e53e3e' : '#ddd' }}
-              type="password"
-              placeholder="비밀번호 확인"
-              value={form.confirmPassword}
-              onChange={set('confirmPassword')}
-              required
-            />
+            <div style={{ position: 'relative' }}>
+              <input
+                style={{ ...styles.input, width: '100%', boxSizing: 'border-box', paddingRight: 64, borderColor: confirmError ? '#e53e3e' : '#ddd' }}
+                type={showConfirm ? 'text' : 'password'}
+                placeholder="비밀번호 확인"
+                value={form.confirmPassword}
+                onChange={set('confirmPassword')}
+                required
+              />
+              <button type="button" style={styles.eyeBtn} onClick={() => setShowConfirm(!showConfirm)}>
+                {showConfirm ? '숨기기' : '표시'}
+              </button>
+            </div>
             {confirmError && <p style={styles.error}>{confirmError}</p>}
           </div>
           <input style={styles.input} type="text" placeholder="이름" value={form.name} onChange={set('name')} required />
@@ -159,6 +171,7 @@ const styles = {
   input: { padding: '11px 14px', border: '1px solid #ddd', borderRadius: 8, fontSize: 14 },
   btn: { padding: 12, background: '#4f46e5', color: '#fff', border: 'none', borderRadius: 8, fontSize: 15, cursor: 'pointer', marginTop: 4 },
   error: { color: '#e53e3e', fontSize: 13 },
-  hint:  { fontSize: 12, marginTop: 4, marginBottom: 0 },
+  hint:   { fontSize: 12, marginTop: 4, marginBottom: 0 },
+  eyeBtn: { position: 'absolute', right: 0, top: 0, bottom: 0, padding: '0 12px', border: 'none', background: 'transparent', color: '#888', fontSize: 12, cursor: 'pointer' },
   link: { textAlign: 'center', marginTop: 16, fontSize: 13, color: '#666' },
 };

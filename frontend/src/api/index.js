@@ -31,6 +31,8 @@ export const getMe          = ()             => api.get('/users/me');
 export const checkEmail     = (email)        => api.get('/users/check-email', { params: { email } });
 export const findEmail      = (name, studentNo) => api.get('/users/find-email', { params: { name, studentNo } });
 export const changePassword = (email, newPassword) => api.put('/users/change-password', { email, newPassword });
+export const changePasswordLoggedIn = (userId, currentPassword, newPassword) =>
+  api.patch(`/users/${userId}/password`, { currentPassword, newPassword });
 export const getTags    = (userId) => api.get(`/users/${userId}/tags`);
 export const updateTags = (userId, tags) => api.put(`/users/${userId}/tags`, tags);
 export const getProfile = (userId) => api.get(`/users/${userId}/profile`);

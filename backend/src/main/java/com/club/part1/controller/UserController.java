@@ -14,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -124,6 +125,18 @@ public class UserController {
     @PostMapping("/login")
     public ResponseEntity<Map<String, Object>> login(@RequestBody Map<String, String> body) {
         return ResponseEntity.ok(userService.login(body.get("email"), body.get("password")));
+    }
+
+    // PATCH /api/users/{userId}/password — 로그인 상태에서 현재 PW 확인 후 변경
+    @PatchMapping("/{userId}/password")
+    public ResponseEntity<Void> changePasswordLoggedIn(@PathVariable Long userId,
+                                                       @RequestBody Map<String, String> body,
+                                                       Authentication authentication) {
+        if (!userId.equals((Long) authentication.getPrincipal())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        userService.changePasswordLoggedIn(userId, body.get("currentPassword"), body.get("newPassword"));
+        return ResponseEntity.ok().build();
     }
 
     // GET /api/users/{userId}/tags — 본인 태그만 조회 가능

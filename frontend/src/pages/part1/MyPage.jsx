@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { getTags, getMyApplications, getWishlist, getProfile, updateProfile } from '../../api';
+import { getTags, getMyApplications, getWishlist, getProfile, updateProfile, changePasswordLoggedIn } from '../../api';
 
 export default function MyPage({ user, onProfileSaved }) {
   const [searchParams] = useSearchParams();
@@ -10,6 +10,12 @@ export default function MyPage({ user, onProfileSaved }) {
   const [tags, setTags]         = useState([]);
   const [apps, setApps]         = useState([]);
   const [wishlist, setWishlist] = useState([]);
+
+  // 비밀번호 변경 탭 데이터
+  const [pwForm, setPwForm]   = useState({ current: '', next: '', confirm: '' });
+  const [showPw, setShowPw]   = useState({ current: false, next: false, confirm: false });
+  const [pwMsg, setPwMsg]     = useState('');
+  const [pwSaving, setPwSaving] = useState(false);
 
   // 학생 정보 탭 데이터
   const [profile, setProfile]       = useState({ studentNo: '', department: '', certificatePath: '' });
@@ -74,8 +80,9 @@ export default function MyPage({ user, onProfileSaved }) {
 
       {/* 탭 */}
       <div style={styles.tabBar}>
-        <button style={tab === 'info'    ? styles.tabActive : styles.tab} onClick={() => setTab('info')}>내 정보</button>
-        <button style={tab === 'profile' ? styles.tabActive : styles.tab} onClick={() => setTab('profile')}>학생 정보</button>
+        <button style={tab === 'info'     ? styles.tabActive : styles.tab} onClick={() => setTab('info')}>내 정보</button>
+        <button style={tab === 'profile'  ? styles.tabActive : styles.tab} onClick={() => setTab('profile')}>학생 정보</button>
+        <button style={tab === 'password' ? styles.tabActive : styles.tab} onClick={() => setTab('password')}>비밀번호 변경</button>
       </div>
 
       {/* ── 내 정보 탭 ── */}
@@ -125,6 +132,60 @@ export default function MyPage({ user, onProfileSaved }) {
               ))}
           </section>
         </>
+      )}
+
+      {/* ── 비밀번호 변경 탭 ── */}
+      {tab === 'password' && (
+        <section style={styles.section}>
+          <h3 style={{ ...styles.sectionTitle, marginBottom: 20 }}>비밀번호 변경</h3>
+          <form onSubmit={async (e) => {
+            e.preventDefault();
+            setPwMsg('');
+            if (pwForm.next !== pwForm.confirm) {
+              setPwMsg('새 비밀번호가 일치하지 않습니다.');
+              return;
+            }
+            setPwSaving(true);
+            try {
+              await changePasswordLoggedIn(user.userId, pwForm.current, pwForm.next);
+              setPwMsg('비밀번호가 변경되었습니다.');
+              setPwForm({ current: '', next: '', confirm: '' });
+            } catch (err) {
+              setPwMsg(err.response?.data?.error || '변경 중 오류가 발생했습니다.');
+            } finally {
+              setPwSaving(false);
+            }
+          }} style={styles.form}>
+            {['current', 'next', 'confirm'].map((key) => (
+              <div key={key}>
+                <label style={styles.label}>
+                  {key === 'current' ? '현재 비밀번호' : key === 'next' ? '새 비밀번호' : '새 비밀번호 확인'}
+                </label>
+                <div style={{ position: 'relative' }}>
+                  <input
+                    style={{ ...styles.input, width: '100%', boxSizing: 'border-box', paddingRight: 64 }}
+                    type={showPw[key] ? 'text' : 'password'}
+                    value={pwForm[key]}
+                    onChange={(e) => setPwForm({ ...pwForm, [key]: e.target.value })}
+                    required
+                  />
+                  <button type="button" style={styles.eyeBtn}
+                    onClick={() => setShowPw({ ...showPw, [key]: !showPw[key] })}>
+                    {showPw[key] ? '숨기기' : '표시'}
+                  </button>
+                </div>
+              </div>
+            ))}
+            {pwMsg && (
+              <p style={{ fontSize: 13, color: pwMsg.includes('변경되었습니다') ? '#10b981' : '#ef4444' }}>
+                {pwMsg}
+              </p>
+            )}
+            <button style={styles.btn} type="submit" disabled={pwSaving}>
+              {pwSaving ? '변경 중...' : '변경하기'}
+            </button>
+          </form>
+        </section>
       )}
 
       {/* ── 학생 정보 탭 ── */}
@@ -217,4 +278,5 @@ const styles = {
   certInfo:      { fontSize: 12, color: '#888', margin: '0 0 4px' },
   btn:           { marginTop: 12, padding: 12, background: '#4f46e5', color: '#fff', border: 'none', borderRadius: 8, fontSize: 15, cursor: 'pointer' },
   editBtn:       { marginTop: 12, padding: 12, background: '#ef4444', color: '#fff', border: 'none', borderRadius: 8, fontSize: 15, cursor: 'pointer' },
+  eyeBtn:        { position: 'absolute', right: 0, top: 0, bottom: 0, padding: '0 12px', border: 'none', background: 'transparent', color: '#888', fontSize: 12, cursor: 'pointer' },
 };
