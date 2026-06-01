@@ -12,7 +12,7 @@ import ClubGalleryPage  from './pages/part2/ClubGalleryPage';
 import ClubDetailPage   from './pages/part2/ClubDetailPage';
 import CreateClubPage   from './pages/part2/CreateClubPage';
 import ClubManagePage   from './pages/part2/ClubManagePage';
-import AdminClubForm    from './pages/part2/AdminClubForm';
+import AdminPage        from './pages/admin/AdminPage';
 
 import RecommendPage  from './pages/part3/RecommendPage';
 import WishlistPage   from './pages/part3/WishlistPage';
@@ -158,7 +158,7 @@ export default function App() {
           <Route path="/clubs/:clubId/qna" element={<PrivateRoute user={user}><QnaPage userId={user?.userId} /></PrivateRoute>} />
 
           {/* 관리자 */}
-          <Route path="/admin" element={<AdminRoute user={user}><AdminClubForm /></AdminRoute>} />
+          <Route path="/admin" element={<AdminRoute user={user}><AdminPage /></AdminRoute>} />
         </Routes>
       </div>
     </BrowserRouter>

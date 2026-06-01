@@ -72,3 +72,11 @@ export const updateAppStatus    = (appId, status, comment) =>
 export const getQnaList     = (clubId) => api.get(`/qna/club/${clubId}`);
 export const createQuestion = (data)   => api.post('/qna', data);
 export const createReply    = (parentId, data) => api.post(`/qna/${parentId}/reply`, data);
+
+// ── 관리자 ──────────────────────────────────
+export const getAdminStats        = ()             => api.get('/admin/stats');
+export const getAdminUsers        = ()             => api.get('/admin/users');
+export const changeUserRole       = (userId, role) => api.patch(`/admin/users/${userId}/role`, { role });
+export const getAdminClubs        = ()             => api.get('/admin/clubs');
+export const deactivateClub       = (clubId)       => api.delete(`/admin/clubs/${clubId}`);
+export const getAdminApplications = ()             => api.get('/admin/applications');

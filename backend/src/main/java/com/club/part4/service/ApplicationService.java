@@ -77,6 +77,26 @@ public class ApplicationService {
             .collect(Collectors.toList());
     }
 
+    public List<Map<String, Object>> getAllApplications() {
+        return applicationRepository.findAll().stream()
+            .sorted((a, b) -> b.getAppliedAt().compareTo(a.getAppliedAt()))
+            .map(app -> {
+                Map<String, Object> dto = new HashMap<>();
+                dto.put("appId",         app.getAppId());
+                dto.put("clubId",        app.getClubId());
+                dto.put("clubName",      clubRepository.findById(app.getClubId())
+                                            .map(c -> c.getClubName()).orElse("알 수 없는 동아리"));
+                dto.put("userId",        app.getUserId());
+                dto.put("userName",      userRepository.findById(app.getUserId())
+                                            .map(u -> u.getUserName()).orElse("알 수 없음"));
+                dto.put("motivation",    app.getMotivation());
+                dto.put("status",        app.getStatus());
+                dto.put("appliedAt",     app.getAppliedAt());
+                dto.put("reviewComment", app.getReviewComment());
+                return dto;
+            }).collect(Collectors.toList());
+    }
+
     @Transactional
     public void updateStatus(Long appId, String status, String comment) {
         Application app = applicationRepository.findById(appId)

@@ -151,6 +151,31 @@ public class UserService {
             .collect(Collectors.toList());
     }
 
+    public List<Map<String, Object>> getAllUsers() {
+        return userRepository.findAll().stream().map(u -> {
+            Map<String, Object> dto = new HashMap<>();
+            dto.put("userId",     u.getUserId());
+            dto.put("name",       u.getUserName());
+            dto.put("email",      u.getUserEmail());
+            dto.put("role",       u.getRole());
+            dto.put("studentNo",  u.getStudentNo());
+            dto.put("department", u.getDepartment());
+            dto.put("createdAt",  u.getCreatedAt());
+            return dto;
+        }).collect(Collectors.toList());
+    }
+
+    public long countUsers() {
+        return userRepository.count();
+    }
+
+    @Transactional
+    public void changeRole(Long userId, String role) {
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+        user.setRole(role);
+    }
+
     @Transactional
     public void updateTags(Long userId, List<String> tags) {
         interestRepository.deleteByUserUserId(userId);

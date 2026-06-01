@@ -81,6 +81,21 @@ public class ClubService {
         return clubRepository.save(club);
     }
 
+    public List<Club> getAllClubs() {
+        return clubRepository.findAll();
+    }
+
+    public long countActiveClubs() {
+        return clubRepository.findByIsActive("Y").size();
+    }
+
+    @Transactional
+    public void deactivateClub(Long clubId) {
+        Club club = clubRepository.findById(clubId)
+            .orElseThrow(() -> new IllegalArgumentException("동아리를 찾을 수 없습니다."));
+        club.setIsActive("N");
+    }
+
     @Transactional
     public void updateTags(Long clubId, List<String> tags) {
         clubTagRepository.deleteByClubClubId(clubId);
