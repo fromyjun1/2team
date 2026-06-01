@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { getClub, addWishlist, removeWishlist, applyClub, getWishlist } from '../../api';
+import { getClub, addWishlist, removeWishlist, applyClub, getWishlist, getMyApplications } from '../../api';
 
 export default function ClubDetailPage({ userId }) {
   const { clubId } = useParams();
@@ -10,6 +10,7 @@ export default function ClubDetailPage({ userId }) {
   const [applying, setApplying] = useState(false);
   const [motivation, setMotivation] = useState('');
   const [submitted, setSubmitted]   = useState(false);
+  const [applyError, setApplyError] = useState('');
 
   const requireLogin = () => { if (!userId) { navigate('/login'); return true; } return false; };
 
@@ -19,10 +20,12 @@ export default function ClubDetailPage({ userId }) {
     Promise.all([
       getClub(clubId),
       userId ? getWishlist(userId) : Promise.resolve(null),
-    ]).then(([clubRes, wishRes]) => {
+      userId ? getMyApplications(userId) : Promise.resolve(null),
+    ]).then(([clubRes, wishRes, appRes]) => {
       if (!alive) return;
       setClub(clubRes.data);
       if (wishRes) setWished(wishRes.data.some((item) => item.clubId === clubIdNum));
+      if (appRes) setSubmitted(appRes.data.some((a) => Number(a.clubId) === clubIdNum));
     });
     return () => { alive = false; };
   }, [clubId, userId]);
@@ -36,9 +39,14 @@ export default function ClubDetailPage({ userId }) {
   const handleApply = async (e) => {
     e.preventDefault();
     if (requireLogin()) return;
-    await applyClub({ userId, clubId: Number(clubId), motivation });
-    setSubmitted(true);
-    setApplying(false);
+    setApplyError('');
+    try {
+      await applyClub({ userId, clubId: Number(clubId), motivation });
+      setSubmitted(true);
+      setApplying(false);
+    } catch (err) {
+      setApplyError(err.response?.data?.error || '신청 중 오류가 발생했습니다.');
+    }
   };
 
   if (!club) return <p style={{ textAlign: 'center', marginTop: 80 }}>불러오는 중...</p>;
@@ -111,6 +119,7 @@ export default function ClubDetailPage({ userId }) {
               onChange={(e) => setMotivation(e.target.value)}
               required
             />
+            {applyError && <p style={styles.applyErrorMsg}>{applyError}</p>}
             <button style={styles.submitBtn} type="submit">제출</button>
           </form>
         )}
@@ -145,4 +154,5 @@ const styles = {
   applyForm: { marginTop: 20, display: 'flex', flexDirection: 'column', gap: 10 },
   textarea: { padding: '12px 14px', border: '1px solid #ddd', borderRadius: 8, fontSize: 14, resize: 'vertical' },
   submitBtn: { padding: '11px', background: '#10b981', color: '#fff', border: 'none', borderRadius: 8, fontSize: 14, cursor: 'pointer' },
+  applyErrorMsg: { color: '#ef4444', fontSize: 13, margin: 0 },
 };

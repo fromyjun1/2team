@@ -14,7 +14,7 @@ import java.util.Date;
 @Component
 public class JwtUtil {
 
-    @Value("${jwt.secret}")
+    @Value("${jwt.secret:ClubSystem2024SecretKeyForJwtAuth2team}")
     private String secretKey;
 
     private static final long EXPIRY_MS = 1000L * 60 * 60 * 24; // 24시간

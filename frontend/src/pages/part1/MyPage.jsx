@@ -124,7 +124,7 @@ export default function MyPage({ user, onProfileSaved }) {
               ? <p style={styles.empty}>신청한 동아리가 없습니다.</p>
               : apps.slice(0, 3).map((a) => (
                 <div key={a.appId} style={styles.miniCard}>
-                  <span style={styles.clubName}>동아리 #{a.clubId}</span>
+                  <span style={styles.clubName}>{a.clubName}</span>
                   <span style={{ ...styles.badge, background: STATUS[a.status]?.color }}>
                     {STATUS[a.status]?.label}
                   </span>

@@ -40,4 +40,7 @@ public class QnaBoard {
 
     @Transient
     private List<QnaBoard> replies;
+
+    @Transient
+    private String authorName;
 }

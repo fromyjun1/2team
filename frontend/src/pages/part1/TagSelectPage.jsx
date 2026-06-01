@@ -38,9 +38,7 @@ export default function TagSelectPage({ userId, onSave }) {
       setSaved(true);
       if (onSave) onSave(selected);
       const from = searchParams.get('from');
-      if (from) {
-        setTimeout(() => navigate(`/${from}`), 600);
-      }
+      setTimeout(() => navigate(from ? `/${from}` : '/clubs'), 600);
     } catch {
       setError('저장 중 오류가 발생했습니다. 다시 시도해주세요.');
     }

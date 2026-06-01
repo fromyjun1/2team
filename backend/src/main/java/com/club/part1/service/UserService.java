@@ -154,6 +154,7 @@ public class UserService {
     @Transactional
     public void updateTags(Long userId, List<String> tags) {
         interestRepository.deleteByUserUserId(userId);
+        interestRepository.flush(); // DELETE를 즉시 DB에 반영 후 INSERT (unique 제약 위반 방지)
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
         tags.forEach(tag -> {

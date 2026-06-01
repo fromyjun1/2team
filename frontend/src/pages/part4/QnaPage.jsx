@@ -43,7 +43,7 @@ export default function QnaPage({ userId }) {
           </div>
           <p style={styles.qContent}>{q.content}</p>
           <div style={styles.qMeta}>
-            작성자 #{q.authorId}&nbsp;|&nbsp;{new Date(q.createdAt).toLocaleDateString()}
+            {q.authorName}&nbsp;|&nbsp;{new Date(q.createdAt).toLocaleDateString()}
           </div>
 
           {/* 답변 목록 */}
@@ -52,7 +52,7 @@ export default function QnaPage({ userId }) {
               <span style={styles.replyArrow}>└</span>
               <div style={{ flex: 1 }}>
                 <p style={styles.replyContent}>{r.content}</p>
-                <span style={styles.qMeta}>작성자 #{r.authorId}</span>
+                <span style={styles.qMeta}>{r.authorName}</span>
               </div>
             </div>
           ))}
