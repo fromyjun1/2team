@@ -56,7 +56,7 @@ export default function ClubDetailPage({ userId }) {
       {/* 헤더 이미지 */}
       <div style={styles.heroBox}>
         {club.imagePath
-          ? <img src={`/images/clubs/${club.imagePath}`} alt={club.clubName} style={styles.heroImg} />
+          ? <img src={club.imagePath.startsWith('http') ? club.imagePath : `/images/clubs/${club.imagePath}`} alt={club.clubName} style={styles.heroImg} />
           : <div style={styles.heroPlaceholder}>{club.clubName[0]}</div>}
       </div>
 

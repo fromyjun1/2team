@@ -167,7 +167,7 @@ export default function ClubGalleryPage() {
             <div key={club.clubId} style={styles.card} onClick={() => navigate(`/clubs/${club.clubId}`)}>
               <div style={styles.cardImg}>
                 {club.imagePath
-                  ? <img src={`/images/clubs/${club.imagePath}`} alt={club.clubName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ? <img src={club.imagePath.startsWith('http') ? club.imagePath : `/images/clubs/${club.imagePath}`} alt={club.clubName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   : <div style={{ fontSize: 56 }}>{CATEGORY_EMOJI[club.category] ?? '🎪'}</div>
                 }
               </div>

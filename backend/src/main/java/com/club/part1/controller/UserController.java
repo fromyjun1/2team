@@ -1,9 +1,6 @@
 package com.club.part1.controller;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,6 +24,9 @@ import org.springframework.web.multipart.MultipartFile;
 import com.club.config.JwtUtil;
 import com.club.part1.model.User;
 import com.club.part1.service.UserService;
+import com.google.cloud.storage.BlobInfo;
+import com.google.cloud.storage.Storage;
+import com.google.cloud.storage.StorageOptions;
 
 import lombok.RequiredArgsConstructor;
 
@@ -38,8 +38,8 @@ public class UserController {
     private final UserService userService;
     private final JwtUtil jwtUtil;
 
-    @Value("${app.upload.dir}")
-    private String uploadDir;
+    @Value("${app.gcs.bucket}")
+    private String gcsBucket;
 
     // GET /api/users/check-email?email=xxx — 이메일 중복 여부 확인 (공개)
     @GetMapping("/check-email")
@@ -111,11 +111,13 @@ public class UserController {
         }
         String certPath = null;
         if (certificate != null && !certificate.isEmpty()) {
-            String filename = UUID.randomUUID() + "_" + certificate.getOriginalFilename();
-            Path dir = Paths.get(uploadDir, "certificates");
-            Files.createDirectories(dir);
-            Files.copy(certificate.getInputStream(), dir.resolve(filename));
-            certPath = filename;
+            String filename = "certificates/" + UUID.randomUUID() + "_" + certificate.getOriginalFilename();
+            Storage storage = StorageOptions.getDefaultInstance().getService();
+            BlobInfo blobInfo = BlobInfo.newBuilder(gcsBucket, filename)
+                    .setContentType(certificate.getContentType())
+                    .build();
+            storage.create(blobInfo, certificate.getBytes());
+            certPath = "https://storage.googleapis.com/" + gcsBucket + "/" + filename;
         }
         userService.updateProfile(userId, studentNo, department, certPath);
         return ResponseEntity.ok().build();

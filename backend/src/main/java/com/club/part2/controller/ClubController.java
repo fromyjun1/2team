@@ -2,7 +2,12 @@ package com.club.part2.controller;
 
 import com.club.part2.model.Club;
 import com.club.part2.service.ClubService;
+import com.google.cloud.storage.BlobInfo;
+import com.google.cloud.storage.Storage;
+import com.google.cloud.storage.StorageOptions;
 import lombok.RequiredArgsConstructor;
+import net.coobird.thumbnailator.Thumbnails;
+import net.coobird.thumbnailator.geometry.Positions;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -10,10 +15,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -25,8 +28,8 @@ public class ClubController {
 
     private final ClubService clubService;
 
-    @Value("${app.upload.dir}")
-    private String uploadDir;
+    @Value("${app.gcs.bucket}")
+    private String gcsBucket;
 
     // GET /api/clubs — 전체 목록
     @GetMapping
@@ -66,11 +69,21 @@ public class ClubController {
     @PostMapping("/image")
     public ResponseEntity<Map<String, String>> uploadImage(
             @RequestParam("file") MultipartFile file) throws IOException {
-        String filename = UUID.randomUUID() + "_" + file.getOriginalFilename();
-        Path dir = Paths.get(uploadDir, "clubs");
-        Files.createDirectories(dir);
-        Files.copy(file.getInputStream(), dir.resolve(filename));
-        return ResponseEntity.ok(Map.of("imagePath", filename));
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        Thumbnails.of(file.getInputStream())
+                .crop(Positions.CENTER)
+                .size(800, 500)
+                .outputFormat("jpg")
+                .toOutputStream(baos);
+
+        String filename = "clubs/" + UUID.randomUUID() + ".jpg";
+        Storage storage = StorageOptions.getDefaultInstance().getService();
+        BlobInfo blobInfo = BlobInfo.newBuilder(gcsBucket, filename)
+                .setContentType("image/jpeg")
+                .build();
+        storage.create(blobInfo, baos.toByteArray());
+        String publicUrl = "https://storage.googleapis.com/" + gcsBucket + "/" + filename;
+        return ResponseEntity.ok(Map.of("imagePath", publicUrl));
     }
 
     // PUT /api/clubs/{clubId}/tags — 태그 수정 (클럽 관리자만)

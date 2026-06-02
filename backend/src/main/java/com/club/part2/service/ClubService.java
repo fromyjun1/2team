@@ -98,14 +98,15 @@ public class ClubService {
 
     @Transactional
     public void updateTags(Long clubId, List<String> tags) {
-        clubTagRepository.deleteByClubClubId(clubId);
         Club club = clubRepository.findById(clubId)
             .orElseThrow(() -> new IllegalArgumentException("동아리를 찾을 수 없습니다."));
+        club.getTags().clear();
+        clubRepository.saveAndFlush(club);
         tags.forEach(tag -> {
             ClubTag ct = new ClubTag();
             ct.setClub(club);
             ct.setTagName(tag.startsWith("#") ? tag : "#" + tag);
-            clubTagRepository.save(ct);
+            club.getTags().add(ct);
         });
     }
 }

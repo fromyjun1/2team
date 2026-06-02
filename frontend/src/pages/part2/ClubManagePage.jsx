@@ -35,7 +35,7 @@ export default function ClubManagePage({ user }) {
         contactEmail: c.contactEmail || '',
       });
       setChips(c.tags?.map((t) => t.tagName) || []);
-      if (c.imagePath) setPreview(`/images/clubs/${c.imagePath}`);
+      if (c.imagePath) setPreview(c.imagePath.startsWith('http') ? c.imagePath : `/images/clubs/${c.imagePath}`);
     });
     getClubApplications(clubId).then((r) => setApplications(r.data)).catch(() => {});
   }, [clubId]);
