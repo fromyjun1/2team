@@ -24,6 +24,8 @@ export default function ClubManagePage({ user }) {
   const [imagePreview, setPreview] = useState(null);
   const [saving, setSaving]   = useState(false);
   const [saveMsg, setSaveMsg] = useState('');
+  const [saveMsgType, setSaveMsgType] = useState('success');
+  const [appLoadError, setAppLoadError] = useState('');
 
   useEffect(() => {
     getClub(clubId).then((r) => {
@@ -37,7 +39,9 @@ export default function ClubManagePage({ user }) {
       setChips(c.tags?.map((t) => t.tagName) || []);
       if (c.imagePath) setPreview(c.imagePath.startsWith('http') ? c.imagePath : `/images/clubs/${c.imagePath}`);
     });
-    getClubApplications(clubId).then((r) => setApplications(r.data)).catch(() => {});
+    getClubApplications(clubId)
+      .then((r) => setApplications(r.data))
+      .catch(() => setAppLoadError('신청 목록을 불러오는 데 실패했습니다. 페이지를 새로고침 해주세요.'));
   }, [clubId]);
 
   // ── 신청 심사 ──
@@ -65,15 +69,56 @@ export default function ClubManagePage({ user }) {
       setChips((prev) => prev.slice(0, -1));
   };
 
-  const handleImage = (e) => {
+  const toJpegFile = (file) =>
+    new Promise((resolve, reject) => {
+      if (file.size > 10 * 1024 * 1024) { reject(new Error('이미지 파일 크기는 10MB 이하여야 합니다.')); return; }
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+        canvas.getContext('2d').drawImage(img, 0, 0);
+        URL.revokeObjectURL(url);
+        canvas.toBlob(
+          (blob) => blob
+            ? resolve(new File([blob], file.name.replace(/\.[^.]+$/, '.jpg'), { type: 'image/jpeg' }))
+            : reject(new Error('이미지 변환에 실패했습니다.')),
+          'image/jpeg', 0.92
+        );
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('지원하지 않는 이미지 형식입니다.')); };
+      img.src = url;
+    });
+
+  const handleImage = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    setImageFile(file);
-    setPreview(URL.createObjectURL(file));
+    try {
+      const converted = await toJpegFile(file);
+      setImageFile(converted);
+      setPreview(URL.createObjectURL(converted));
+    } catch (err) {
+      setSaveMsg(err.message);
+      setSaveMsgType('error');
+      e.target.value = '';
+    }
+  };
+
+  const validateSave = () => {
+    if (!form.clubName.trim()) return '동아리 이름을 입력해주세요.';
+    const members = Number(form.maxMembers);
+    if (!Number.isInteger(members) || members < 1 || members > 500)
+      return '최대 인원은 1~500 사이의 정수여야 합니다.';
+    if (form.contactEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.contactEmail))
+      return '올바른 이메일 형식을 입력해주세요.';
+    return '';
   };
 
   const handleSave = async (e) => {
     e.preventDefault();
+    const validationError = validateSave();
+    if (validationError) { setSaveMsg(validationError); setSaveMsgType('error'); return; }
     setSaving(true); setSaveMsg('');
     try {
       let body = { ...form, maxMembers: Number(form.maxMembers) };
@@ -84,9 +129,12 @@ export default function ClubManagePage({ user }) {
       await updateClub(clubId, body);
       await updateClubTags(clubId, chips);
       setSaveMsg('저장되었습니다.');
+      setSaveMsgType('success');
       setImageFile(null);
-    } catch { setSaveMsg('저장 중 오류가 발생했습니다.'); }
-    finally { setSaving(false); }
+    } catch (err) {
+      setSaveMsg(err.response?.data?.error || '저장 중 오류가 발생했습니다.');
+      setSaveMsgType('error');
+    } finally { setSaving(false); }
   };
 
   if (!form) return <p style={{ textAlign: 'center', marginTop: 80 }}>불러오는 중...</p>;
@@ -114,7 +162,8 @@ export default function ClubManagePage({ user }) {
       {/* ── 신청 심사 탭 ── */}
       {tab === 'applications' && (
         <div>
-          {applications.length === 0 && <p style={styles.empty}>신청자가 없습니다.</p>}
+          {appLoadError && <p style={styles.errorMsg}>{appLoadError}</p>}
+          {!appLoadError && applications.length === 0 && <p style={styles.empty}>신청자가 없습니다.</p>}
           {applications.map((app) => (
             <div key={app.appId} style={styles.appCard}>
               <div style={styles.appTop}>
@@ -188,7 +237,7 @@ export default function ClubManagePage({ user }) {
             />
           </div>
 
-          {saveMsg && <p style={{ color: saveMsg.includes('오류') ? '#ef4444' : '#10b981', fontSize: 13 }}>{saveMsg}</p>}
+          {saveMsg && <p style={{ color: saveMsgType === 'error' ? '#ef4444' : '#10b981', fontSize: 13 }}>{saveMsg}</p>}
           <button style={styles.saveBtn} type="submit" disabled={saving}>{saving ? '저장 중...' : '저장하기'}</button>
         </form>
       )}
@@ -202,7 +251,9 @@ export default function ClubManagePage({ user }) {
               <div key={app.appId} style={styles.memberCard}>
                 <div>
                   <span style={styles.memberName}>{app.userName}</span>
-                  <span style={styles.memberBadge}>멤버</span>
+                  {app.userId === user?.userId
+                    ? <span style={styles.creatorBadge}>👑 동아리장</span>
+                    : <span style={styles.memberBadge}>멤버</span>}
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                   <span style={styles.memberDate}>{new Date(app.appliedAt).toLocaleDateString()} 가입</span>
@@ -234,6 +285,7 @@ const styles = {
   tabActive:       { padding: '10px 24px', border: 'none', background: 'none', cursor: 'pointer', fontSize: 14, color: '#ff6b35', fontWeight: 700, borderBottom: '2px solid #ff6b35', marginBottom: -2, display: 'flex', alignItems: 'center', gap: 6 },
   badge:           { background: '#ef4444', color: '#fff', borderRadius: 10, padding: '1px 7px', fontSize: 11, fontWeight: 700 },
   empty:           { color: '#aaa', textAlign: 'center', marginTop: 40 },
+  errorMsg:        { color: '#ef4444', fontSize: 13, textAlign: 'center', marginTop: 20 },
   appCard:         { background: '#fff', borderRadius: 10, padding: '18px 22px', marginBottom: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.05)' },
   appTop:          { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
   statusBadge:     { padding: '3px 10px', borderRadius: 12, color: '#fff', fontSize: 12, fontWeight: 600 },
@@ -257,6 +309,7 @@ const styles = {
   memberCard:      { display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#fff', borderRadius: 10, padding: '14px 20px', marginBottom: 10, boxShadow: '0 2px 6px rgba(0,0,0,0.05)' },
   memberName:      { fontSize: 15, fontWeight: 600, marginRight: 8 },
   memberBadge:     { display: 'inline-block', padding: '2px 8px', borderRadius: 20, background: '#fff0e8', color: '#ff6b35', fontSize: 11, fontWeight: 700, border: '1px solid #ffe0d0' },
+  creatorBadge:    { display: 'inline-block', padding: '2px 8px', borderRadius: 20, background: '#fefce8', color: '#d97706', fontSize: 11, fontWeight: 700, border: '1px solid #fde68a' },
   memberDate:      { fontSize: 13, color: '#aaa' },
   kickBtn:         { padding: '5px 12px', background: '#fee2e2', color: '#dc2626', border: 'none', borderRadius: 6, fontSize: 12, fontWeight: 700, cursor: 'pointer' },
 };

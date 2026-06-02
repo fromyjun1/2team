@@ -1,15 +1,16 @@
 import { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { getTags, getMyApplications, getWishlist, getProfile, updateProfile, changePasswordLoggedIn } from '../../api';
+import { getTags, getMyApplications, getWishlist, getProfile, updateProfile, changePasswordLoggedIn, getClub } from '../../api';
 
 export default function MyPage({ user, onProfileSaved }) {
   const [searchParams] = useSearchParams();
   const [tab, setTab] = useState(searchParams.get('tab') === 'profile' ? 'profile' : 'info');
 
   // 내 정보 탭 데이터
-  const [tags, setTags]         = useState([]);
-  const [apps, setApps]         = useState([]);
-  const [wishlist, setWishlist] = useState([]);
+  const [tags, setTags]           = useState([]);
+  const [apps, setApps]           = useState([]);
+  const [wishlist, setWishlist]   = useState([]);
+  const [myClubs, setMyClubs]     = useState([]);
 
   // 비밀번호 변경 탭 데이터
   const [pwForm, setPwForm]   = useState({ current: '', next: '', confirm: '' });
@@ -27,7 +28,12 @@ export default function MyPage({ user, onProfileSaved }) {
   useEffect(() => {
     if (!user?.userId) return;
     getTags(user.userId).then((r) => setTags(r.data)).catch(() => {});
-    getMyApplications(user.userId).then((r) => setApps(r.data)).catch(() => {});
+    getMyApplications(user.userId).then(async (r) => {
+      setApps(r.data);
+      const approved = r.data.filter((a) => a.status === 'APPROVED');
+      const clubs = await Promise.all(approved.map((a) => getClub(a.clubId).then((res) => res.data).catch(() => null)));
+      setMyClubs(clubs.filter(Boolean));
+    }).catch(() => {});
     getWishlist(user.userId).then((r) => setWishlist(r.data)).catch(() => {});
     getProfile(user.userId).then((r) => {
       setProfile({
@@ -81,6 +87,9 @@ export default function MyPage({ user, onProfileSaved }) {
       {/* 탭 */}
       <div style={styles.tabBar}>
         <button style={tab === 'info'     ? styles.tabActive : styles.tab} onClick={() => setTab('info')}>내 정보</button>
+        <button style={tab === 'myclubs'  ? styles.tabActive : styles.tab} onClick={() => setTab('myclubs')}>
+          내 동아리{myClubs.length > 0 && <span style={styles.tabBadge}>{myClubs.length}</span>}
+        </button>
         <button style={tab === 'profile'  ? styles.tabActive : styles.tab} onClick={() => setTab('profile')}>학생 정보</button>
         <button style={tab === 'password' ? styles.tabActive : styles.tab} onClick={() => setTab('password')}>비밀번호 변경</button>
       </div>
@@ -132,6 +141,36 @@ export default function MyPage({ user, onProfileSaved }) {
               ))}
           </section>
         </>
+      )}
+
+      {/* ── 내 동아리 탭 ── */}
+      {tab === 'myclubs' && (
+        <section style={styles.section}>
+          <h3 style={{ ...styles.sectionTitle, marginBottom: 20 }}>내 동아리 ({myClubs.length})</h3>
+          {myClubs.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '32px 0' }}>
+              <p style={styles.empty}>아직 가입된 동아리가 없습니다.</p>
+              <Link to="/clubs" style={{ color: '#ff6b35', fontSize: 14 }}>동아리 탐색하러 가기</Link>
+            </div>
+          ) : (
+            <div style={styles.clubGrid}>
+              {myClubs.map((c) => (
+                <Link key={c.clubId} to={`/clubs/${c.clubId}`} style={styles.clubCard}>
+                  <div style={styles.clubCardImg}>
+                    {c.imagePath
+                      ? <img src={c.imagePath.startsWith('http') ? c.imagePath : `/images/clubs/${c.imagePath}`} alt={c.clubName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      : <span style={{ fontSize: 28, color: '#cbd5e1' }}>{c.clubName[0]}</span>}
+                  </div>
+                  <div style={styles.clubCardBody}>
+                    <p style={styles.clubCardCategory}>{c.category}</p>
+                    <p style={styles.clubCardName}>{c.clubName}</p>
+                    <span style={styles.memberBadge}>✅ 멤버</span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
+        </section>
       )}
 
       {/* ── 비밀번호 변경 탭 ── */}
@@ -279,4 +318,12 @@ const styles = {
   btn:           { marginTop: 12, padding: 12, background: '#ff6b35', color: '#fff', border: 'none', borderRadius: 8, fontSize: 15, cursor: 'pointer' },
   editBtn:       { marginTop: 12, padding: 12, background: '#ef4444', color: '#fff', border: 'none', borderRadius: 8, fontSize: 15, cursor: 'pointer' },
   eyeBtn:        { position: 'absolute', right: 0, top: 0, bottom: 0, padding: '0 12px', border: 'none', background: 'transparent', color: '#888', fontSize: 12, cursor: 'pointer' },
+  tabBadge:      { display: 'inline-block', marginLeft: 5, background: '#ff6b35', color: '#fff', borderRadius: 10, padding: '1px 6px', fontSize: 11, fontWeight: 700 },
+  clubGrid:      { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 14 },
+  clubCard:      { borderRadius: 12, overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.07)', textDecoration: 'none', color: 'inherit', display: 'block' },
+  clubCardImg:   { height: 110, background: '#e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+  clubCardBody:  { padding: '12px 14px' },
+  clubCardCategory: { fontSize: 11, color: '#ff6b35', fontWeight: 700, margin: '0 0 4px' },
+  clubCardName:  { fontSize: 14, fontWeight: 700, color: '#1e293b', margin: '0 0 8px' },
+  memberBadge:   { fontSize: 12, color: '#10b981', fontWeight: 600 },
 };

@@ -106,4 +106,35 @@ public class ApplicationService {
         app.setReviewedAt(LocalDateTime.now());
         applicationRepository.save(app);
     }
+
+    public long getMemberCount(Long clubId) {
+        return applicationRepository.countByClubIdAndStatus(clubId, "APPROVED");
+    }
+
+    @Transactional
+    public void leaveClub(Long userId, Long clubId) {
+        Application app = applicationRepository.findByUserIdAndClubId(userId, clubId)
+            .orElseThrow(() -> new IllegalArgumentException("가입 정보를 찾을 수 없습니다."));
+        if (!"APPROVED".equals(app.getStatus())) {
+            throw new IllegalStateException("승인된 멤버만 탈퇴할 수 있습니다.");
+        }
+        app.setStatus("QUIT");
+        app.setReviewedAt(LocalDateTime.now());
+        applicationRepository.save(app);
+    }
+
+    @Transactional
+    public Application reapply(Long userId, Long clubId, String motivation) {
+        Application app = applicationRepository.findByUserIdAndClubId(userId, clubId)
+            .orElseThrow(() -> new IllegalArgumentException("기존 신청 정보를 찾을 수 없습니다."));
+        if (!"REJECTED".equals(app.getStatus()) && !"QUIT".equals(app.getStatus())) {
+            throw new IllegalStateException("거절되거나 탈퇴한 경우에만 재신청할 수 있습니다.");
+        }
+        app.setStatus("PENDING");
+        app.setMotivation(motivation);
+        app.setReviewComment(null);
+        app.setAppliedAt(LocalDateTime.now());
+        app.setReviewedAt(null);
+        return applicationRepository.save(app);
+    }
 }

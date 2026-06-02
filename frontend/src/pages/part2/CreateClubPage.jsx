@@ -40,16 +40,56 @@ export default function CreateClubPage() {
       setChips((prev) => prev.slice(0, -1));
   };
 
-  const handleImage = (e) => {
+  const toJpegFile = (file) =>
+    new Promise((resolve, reject) => {
+      if (file.size > 10 * 1024 * 1024) { reject(new Error('이미지 파일 크기는 10MB 이하여야 합니다.')); return; }
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+        canvas.getContext('2d').drawImage(img, 0, 0);
+        URL.revokeObjectURL(url);
+        canvas.toBlob(
+          (blob) => blob
+            ? resolve(new File([blob], file.name.replace(/\.[^.]+$/, '.jpg'), { type: 'image/jpeg' }))
+            : reject(new Error('이미지 변환에 실패했습니다.')),
+          'image/jpeg', 0.92
+        );
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('지원하지 않는 이미지 형식입니다.')); };
+      img.src = url;
+    });
+
+  const handleImage = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    setImageFile(file);
-    setPreview(URL.createObjectURL(file));
+    try {
+      const converted = await toJpegFile(file);
+      setImageFile(converted);
+      setPreview(URL.createObjectURL(converted));
+      setError('');
+    } catch (err) {
+      setError(err.message);
+      e.target.value = '';
+    }
+  };
+
+  const validate = () => {
+    if (!form.clubName.trim()) return '동아리 이름을 입력해주세요.';
+    const members = Number(form.maxMembers);
+    if (!Number.isInteger(members) || members < 1 || members > 500)
+      return '최대 인원은 1~500 사이의 정수여야 합니다.';
+    if (form.contactEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.contactEmail))
+      return '올바른 이메일 형식을 입력해주세요.';
+    return '';
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!form.clubName.trim()) { setError('동아리 이름을 입력해주세요.'); return; }
+    const validationError = validate();
+    if (validationError) { setError(validationError); return; }
     setSubmitting(true);
     setError('');
     try {

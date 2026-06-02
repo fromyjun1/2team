@@ -38,8 +38,12 @@ public class ClubService {
 
     @Transactional
     public Club createClub(Map<String, Object> body, Long creatorId) {
+        String clubName = (String) body.get("clubName");
+        if (clubRepository.existsByClubName(clubName)) {
+            throw new IllegalArgumentException("이미 사용 중인 동아리 이름입니다.");
+        }
         Club club = new Club();
-        club.setClubName((String) body.get("clubName"));
+        club.setClubName(clubName);
         club.setDescription((String) body.get("description"));
         club.setImagePath((String) body.get("imagePath"));
         club.setCategory((String) body.get("category"));
@@ -70,7 +74,13 @@ public class ClubService {
         if (!requesterId.equals(club.getCreatorId())) {
             throw new IllegalStateException("동아리 관리자만 수정할 수 있습니다.");
         }
-        if (body.containsKey("clubName"))    club.setClubName((String) body.get("clubName"));
+        if (body.containsKey("clubName")) {
+            String newName = (String) body.get("clubName");
+            if (!newName.equals(club.getClubName()) && clubRepository.existsByClubNameAndClubIdNot(newName, clubId)) {
+                throw new IllegalArgumentException("이미 사용 중인 동아리 이름입니다.");
+            }
+            club.setClubName(newName);
+        }
         if (body.containsKey("description")) club.setDescription((String) body.get("description"));
         if (body.containsKey("imagePath"))   club.setImagePath((String) body.get("imagePath"));
         if (body.containsKey("category"))    club.setCategory((String) body.get("category"));

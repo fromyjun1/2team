@@ -7,15 +7,15 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
-@Table(name = "QNA_BOARD")
+@Table(name = "MEMBER_POSTS")
 @Getter @Setter
-public class QnaBoard {
+public class MemberPost {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seq_qna")
-    @SequenceGenerator(name = "seq_qna", sequenceName = "seq_qna_id", allocationSize = 1)
-    @Column(name = "QNA_ID")
-    private Long qnaId;
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seq_member_post")
+    @SequenceGenerator(name = "seq_member_post", sequenceName = "seq_member_post_id", allocationSize = 1)
+    @Column(name = "POST_ID")
+    private Long postId;
 
     @Column(name = "CLUB_ID", nullable = false)
     private Long clubId;
@@ -32,21 +32,12 @@ public class QnaBoard {
     @Column(name = "CONTENT", length = 2000, nullable = false)
     private String content;
 
-    @Column(name = "IS_SECRET")
-    private String isSecret = "N";
-
     @Column(name = "CREATED_AT")
     private LocalDateTime createdAt = LocalDateTime.now();
 
     @Transient
-    private List<QnaBoard> replies;
+    private List<MemberPost> replies;
 
     @Transient
     private String authorName;
-
-    @Transient
-    private boolean member;
-
-    @Transient
-    private boolean creator;
 }

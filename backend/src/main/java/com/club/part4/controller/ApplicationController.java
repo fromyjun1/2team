@@ -64,4 +64,35 @@ public class ApplicationController {
         applicationService.updateStatus(appId, body.get("status"), body.get("comment"));
         return ResponseEntity.ok().build();
     }
+
+    // GET /api/applications/club/{clubId}/count — 승인된 멤버 수
+    @GetMapping("/club/{clubId}/count")
+    public ResponseEntity<Map<String, Long>> getMemberCount(@PathVariable Long clubId) {
+        return ResponseEntity.ok(Map.of("count", applicationService.getMemberCount(clubId)));
+    }
+
+    // DELETE /api/applications/club/{clubId}/leave — 동아리 탈퇴 (본인만)
+    @DeleteMapping("/club/{clubId}/leave")
+    public ResponseEntity<Void> leaveClub(@PathVariable Long clubId, Authentication authentication) {
+        Long userId = (Long) authentication.getPrincipal();
+        try {
+            applicationService.leaveClub(userId, clubId);
+            return ResponseEntity.ok().build();
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+    }
+
+    // POST /api/applications/reapply — 재신청 (거절/탈퇴 후)
+    @PostMapping("/reapply")
+    public ResponseEntity<?> reapply(@RequestBody Map<String, Object> body, Authentication authentication) {
+        Long userId = (Long) authentication.getPrincipal();
+        Long clubId = Long.valueOf(body.get("clubId").toString());
+        String motivation = (String) body.get("motivation");
+        try {
+            return ResponseEntity.ok(applicationService.reapply(userId, clubId, motivation));
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", e.getMessage()));
+        }
+    }
 }

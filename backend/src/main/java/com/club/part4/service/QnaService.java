@@ -51,12 +51,18 @@ public class QnaService {
             .map(a -> a.getUserId())
             .collect(Collectors.toSet());
 
+        Long creatorId = clubRepository.findById(clubId)
+            .map(c -> c.getCreatorId())
+            .orElse(null);
+
         questions.forEach(q -> {
             q.setAuthorName(nameMap.getOrDefault(q.getAuthorId(), "알 수 없음"));
             q.setMember(memberIds.contains(q.getAuthorId()));
+            q.setCreator(creatorId != null && creatorId.equals(q.getAuthorId()));
             q.getReplies().forEach(r -> {
                 r.setAuthorName(nameMap.getOrDefault(r.getAuthorId(), "알 수 없음"));
                 r.setMember(memberIds.contains(r.getAuthorId()));
+                r.setCreator(creatorId != null && creatorId.equals(r.getAuthorId()));
             });
         });
 

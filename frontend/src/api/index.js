@@ -76,6 +76,19 @@ export const createReply    = (parentId, data) => api.post(`/qna/${parentId}/rep
 export const updateQna      = (qnaId, data)    => api.put(`/qna/${qnaId}`, data);
 export const deleteQna      = (qnaId)          => api.delete(`/qna/${qnaId}`);
 
+export const getMemberCount = (clubId)        => api.get(`/applications/club/${clubId}/count`);
+export const leaveClub      = (clubId)        => api.delete(`/applications/club/${clubId}/leave`);
+export const reapply        = (data)          => api.post('/applications/reapply', data);
+
+export const getNotices     = (clubId)        => api.get(`/notices/club/${clubId}`);
+export const createNotice   = (data)          => api.post('/notices', data);
+export const deleteNotice   = (noticeId)      => api.delete(`/notices/${noticeId}`);
+
+export const getMemberPosts  = (clubId)       => api.get(`/member-posts/club/${clubId}`);
+export const createMemberPost = (data)        => api.post('/member-posts', data);
+export const createMemberReply = (parentId, data) => api.post(`/member-posts/${parentId}/reply`, data);
+export const deleteMemberPost  = (postId)     => api.delete(`/member-posts/${postId}`);
+
 // ── 관리자 ──────────────────────────────────
 export const getAdminStats        = ()             => api.get('/admin/stats');
 export const getAdminUsers        = ()             => api.get('/admin/users');

@@ -10,4 +10,6 @@ public interface ApplicationRepository extends JpaRepository<Application, Long> 
     List<Application> findByClubIdOrderByAppliedAt(Long clubId);
     List<Application> findByClubIdAndStatus(Long clubId, String status);
     long countByStatus(String status);
+    long countByClubIdAndStatus(Long clubId, String status);
+    java.util.Optional<Application> findByUserIdAndClubId(Long userId, Long clubId);
 }

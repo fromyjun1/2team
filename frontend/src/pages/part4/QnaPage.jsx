@@ -123,7 +123,8 @@ export default function QnaPage({ user }) {
               <p style={styles.qContent}>{q.content}</p>
               <div style={styles.qMeta}>
                 {q.authorName}
-                {q.member && <span style={styles.memberBadge}>멤버</span>}
+                {q.creator && <span style={styles.creatorBadge}>👑 동아리장</span>}
+                {!q.creator && q.member && <span style={styles.memberBadge}>멤버</span>}
                 &nbsp;|&nbsp;{new Date(q.createdAt).toLocaleDateString()}
               </div>
             </>
@@ -161,7 +162,8 @@ export default function QnaPage({ user }) {
                     </div>
                     <span style={styles.qMeta}>
                       {r.authorName}
-                      {r.member && <span style={styles.memberBadge}>멤버</span>}
+                      {r.creator && <span style={styles.creatorBadge}>👑 동아리장</span>}
+                      {!r.creator && r.member && <span style={styles.memberBadge}>멤버</span>}
                     </span>
                   </>
                 )}
@@ -219,7 +221,8 @@ const styles = {
   replyContent:{ fontSize: 14, color: '#555', margin: '0 0 4px', flex: 1 },
   replyForm:   { marginTop: 12, display: 'flex', flexDirection: 'column', gap: 8 },
   replyBtn:    { marginTop: 10, padding: '6px 14px', border: '1px solid #ddd', borderRadius: 20, background: '#fff', cursor: 'pointer', fontSize: 12, color: '#555' },
-  memberBadge: { display: 'inline-block', marginLeft: 6, padding: '1px 7px', borderRadius: 20, background: '#fff0e8', color: '#ff6b35', fontSize: 10, fontWeight: 700, border: '1px solid #ffe0d0', verticalAlign: 'middle' },
+  memberBadge:  { display: 'inline-block', marginLeft: 6, padding: '1px 7px', borderRadius: 20, background: '#fff0e8', color: '#ff6b35', fontSize: 10, fontWeight: 700, border: '1px solid #ffe0d0', verticalAlign: 'middle' },
+  creatorBadge: { display: 'inline-block', marginLeft: 6, padding: '1px 7px', borderRadius: 20, background: '#fefce8', color: '#d97706', fontSize: 10, fontWeight: 700, border: '1px solid #fde68a', verticalAlign: 'middle' },
   newForm:     { marginTop: 32, background: '#fff9f5', borderRadius: 12, padding: '24px', display: 'flex', flexDirection: 'column', gap: 10 },
   editForm:    { display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 8 },
   input:       { padding: '10px 14px', border: '1px solid #ddd', borderRadius: 8, fontSize: 14 },

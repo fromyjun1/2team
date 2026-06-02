@@ -17,8 +17,10 @@ import AdminPage        from './pages/admin/AdminPage';
 import RecommendPage  from './pages/part3/RecommendPage';
 import WishlistPage   from './pages/part3/WishlistPage';
 
-import ApplicationPage from './pages/part4/ApplicationPage';
-import QnaPage         from './pages/part4/QnaPage';
+import ApplicationPage  from './pages/part4/ApplicationPage';
+import QnaPage          from './pages/part4/QnaPage';
+import NoticePage       from './pages/part4/NoticePage';
+import MemberBoardPage  from './pages/part4/MemberBoardPage';
 
 // ── 네비게이션 바 ─────────────────────────────────
 function Navbar({ user, onLogout }) {
@@ -182,7 +184,9 @@ export default function App() {
           <Route path="/recommend" element={<ProfileRequiredRoute user={user}><RecommendPage userId={user?.userId} /></ProfileRequiredRoute>} />
           <Route path="/wishlist"  element={<ProfileRequiredRoute user={user}><WishlistPage userId={user?.userId} /></ProfileRequiredRoute>} />
           <Route path="/applications" element={<ProfileRequiredRoute user={user}><ApplicationPage userId={user?.userId} /></ProfileRequiredRoute>} />
-          <Route path="/clubs/:clubId/qna" element={<PrivateRoute user={user}><QnaPage user={user} /></PrivateRoute>} />
+          <Route path="/clubs/:clubId/qna"     element={<PrivateRoute user={user}><QnaPage user={user} /></PrivateRoute>} />
+          <Route path="/clubs/:clubId/notices" element={<PrivateRoute user={user}><NoticePage user={user} /></PrivateRoute>} />
+          <Route path="/clubs/:clubId/board"   element={<PrivateRoute user={user}><MemberBoardPage user={user} /></PrivateRoute>} />
 
           {/* 관리자 */}
           <Route path="/admin" element={<AdminRoute user={user}><AdminPage /></AdminRoute>} />
