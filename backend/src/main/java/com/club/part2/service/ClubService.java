@@ -88,6 +88,7 @@ public class ClubService {
         if (body.containsKey("maxMembers") && body.get("maxMembers") != null) {
             club.setMaxMembers(((Number) body.get("maxMembers")).intValue());
         }
+        if (body.containsKey("isRecruiting")) club.setIsRecruiting((String) body.get("isRecruiting"));
         return clubRepository.save(club);
     }
 

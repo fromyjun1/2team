@@ -26,6 +26,7 @@ export default function ClubManagePage({ user }) {
   const [saveMsg, setSaveMsg] = useState('');
   const [saveMsgType, setSaveMsgType] = useState('success');
   const [appLoadError, setAppLoadError] = useState('');
+  const [expandedMotivations, setExpandedMotivations] = useState({});
 
   useEffect(() => {
     getClub(clubId).then((r) => {
@@ -35,6 +36,7 @@ export default function ClubManagePage({ user }) {
         clubName: c.clubName, description: c.description || '',
         category: c.category || '문화/예술', maxMembers: c.maxMembers || 30,
         contactEmail: c.contactEmail || '',
+        isRecruiting: c.isRecruiting || 'Y',
       });
       setChips(c.tags?.map((t) => t.tagName) || []);
       if (c.imagePath) setPreview(c.imagePath.startsWith('http') ? c.imagePath : `/images/clubs/${c.imagePath}`);
@@ -43,6 +45,9 @@ export default function ClubManagePage({ user }) {
       .then((r) => setApplications(r.data))
       .catch(() => setAppLoadError('신청 목록을 불러오는 데 실패했습니다. 페이지를 새로고침 해주세요.'));
   }, [clubId]);
+
+  const toggleMotivation = (appId) =>
+    setExpandedMotivations((prev) => ({ ...prev, [appId]: !prev[appId] }));
 
   // ── 신청 심사 ──
   const handleStatus = async (appId, status) => {
@@ -172,7 +177,23 @@ export default function ClubManagePage({ user }) {
                   {STATUS_LABEL[app.status]}
                 </span>
               </div>
-              <p style={styles.motivation}>{app.motivation}</p>
+              {(() => {
+                const text = app.motivation || '';
+                const isLong = text.length > 80;
+                const expanded = expandedMotivations[app.appId];
+                return (
+                  <>
+                    <p style={styles.motivation}>
+                      {isLong && !expanded ? text.slice(0, 80) + '...' : text}
+                    </p>
+                    {isLong && (
+                      <button style={styles.moreBtn} onClick={() => toggleMotivation(app.appId)}>
+                        {expanded ? '접기 ▲' : '더 보기 ▼'}
+                      </button>
+                    )}
+                  </>
+                );
+              })()}
               <p style={styles.meta}>신청일: {new Date(app.appliedAt).toLocaleDateString()}</p>
               {app.status === 'PENDING' && (
                 <div style={styles.reviewRow}>
@@ -215,6 +236,24 @@ export default function ClubManagePage({ user }) {
 
           <label style={styles.label}>최대 인원</label>
           <input style={styles.input} type="number" min={1} value={form.maxMembers} onChange={set('maxMembers')} />
+
+          <label style={styles.label}>모집 상태</label>
+          <div style={styles.recruitingRow}>
+            <button
+              type="button"
+              style={{ ...styles.recruitingBtn, ...(form.isRecruiting === 'Y' ? styles.recruitingActive : {}) }}
+              onClick={() => setForm({ ...form, isRecruiting: 'Y' })}
+            >
+              ✅ 모집 중
+            </button>
+            <button
+              type="button"
+              style={{ ...styles.recruitingBtn, ...(form.isRecruiting === 'N' ? styles.recruitingClosed : {}) }}
+              onClick={() => setForm({ ...form, isRecruiting: 'N' })}
+            >
+              🔴 모집 마감
+            </button>
+          </div>
 
           <label style={styles.label}>문의 이메일</label>
           <input style={styles.input} type="email" value={form.contactEmail} onChange={set('contactEmail')} />
@@ -289,7 +328,8 @@ const styles = {
   appCard:         { background: '#fff', borderRadius: 10, padding: '18px 22px', marginBottom: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.05)' },
   appTop:          { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
   statusBadge:     { padding: '3px 10px', borderRadius: 12, color: '#fff', fontSize: 12, fontWeight: 600 },
-  motivation:      { fontSize: 14, color: '#444', lineHeight: 1.6, margin: '0 0 6px', whiteSpace: 'pre-wrap' },
+  motivation:      { fontSize: 14, color: '#444', lineHeight: 1.6, margin: '0 0 4px', whiteSpace: 'pre-wrap' },
+  moreBtn:         { background: 'none', border: 'none', color: '#ff6b35', fontSize: 12, cursor: 'pointer', padding: '0 0 6px', fontWeight: 600 },
   meta:            { fontSize: 12, color: '#aaa', margin: 0 },
   reviewRow:       { display: 'flex', gap: 8, marginTop: 12, alignItems: 'center' },
   commentInput:    { flex: 1, padding: '8px 12px', border: '1px solid #ddd', borderRadius: 6, fontSize: 13 },
@@ -312,4 +352,8 @@ const styles = {
   creatorBadge:    { display: 'inline-block', padding: '2px 8px', borderRadius: 20, background: '#fefce8', color: '#d97706', fontSize: 11, fontWeight: 700, border: '1px solid #fde68a' },
   memberDate:      { fontSize: 13, color: '#aaa' },
   kickBtn:         { padding: '5px 12px', background: '#fee2e2', color: '#dc2626', border: 'none', borderRadius: 6, fontSize: 12, fontWeight: 700, cursor: 'pointer' },
+  recruitingRow:   { display: 'flex', gap: 10 },
+  recruitingBtn:   { flex: 1, padding: '10px', border: '2px solid #e5e7eb', borderRadius: 8, background: '#fff', fontSize: 14, cursor: 'pointer', color: '#888' },
+  recruitingActive:{ border: '2px solid #10b981', background: '#f0fdf4', color: '#10b981', fontWeight: 700 },
+  recruitingClosed:{ border: '2px solid #ef4444', background: '#fef2f2', color: '#ef4444', fontWeight: 700 },
 };

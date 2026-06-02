@@ -20,6 +20,7 @@ export default function ClubGalleryPage() {
   const [category, setCategory] = useState('전체');
   const [chips, setChips]       = useState([]);
   const [inputVal, setInputVal] = useState('');
+  const [sortBy, setSortBy]     = useState('newest');
 
   useEffect(() => {
     getClubs(category === '전체' ? null : category).then((res) => setClubs(res.data));
@@ -85,6 +86,12 @@ export default function ClubGalleryPage() {
     return positiveOk && negativeOk;
   });
 
+  const sorted = [...filtered].sort((a, b) => {
+    if (sortBy === 'name')    return a.clubName.localeCompare(b.clubName, 'ko');
+    if (sortBy === 'members') return (b.maxMembers || 0) - (a.maxMembers || 0);
+    return new Date(b.createdAt) - new Date(a.createdAt);
+  });
+
   const hasFilter = chips.length > 0 || strippedCurrentWord.length > 0;
 
   return (
@@ -135,10 +142,17 @@ export default function ClubGalleryPage() {
           ))}
         </div>
 
-        {/* 동아리 목록 */}
-        <div style={styles.sectionTitle}>
-          전체 동아리{' '}
-          <span style={{ color: '#ff6b35' }}>({filtered.length})</span>
+        {/* 동아리 목록 헤더 */}
+        <div style={styles.listHeader}>
+          <div style={styles.sectionTitle}>
+            전체 동아리{' '}
+            <span style={{ color: '#ff6b35' }}>({sorted.length})</span>
+          </div>
+          <select style={styles.sortSelect} value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+            <option value="newest">최신순</option>
+            <option value="name">가나다순</option>
+            <option value="members">인원 많은순</option>
+          </select>
         </div>
 
         {/* 카테고리 칩 */}
@@ -155,36 +169,51 @@ export default function ClubGalleryPage() {
         </div>
 
         {hasFilter && (
-          <p style={{ fontSize: 13, color: '#7c5a4a', marginBottom: 12 }}>검색 결과 {filtered.length}개</p>
+          <p style={{ fontSize: 13, color: '#7c5a4a', marginBottom: 12 }}>검색 결과 {sorted.length}개</p>
         )}
 
         {/* 카드 그리드 */}
         <div style={styles.grid}>
-          {filtered.length === 0 && hasFilter && (
+          {sorted.length === 0 && hasFilter && (
             <p style={{ color: '#b08070', fontSize: 14, gridColumn: '1/-1' }}>검색 결과가 없습니다.</p>
           )}
-          {filtered.map((club) => (
-            <div key={club.clubId} style={styles.card} onClick={() => navigate(`/clubs/${club.clubId}`)}>
-              <div style={styles.cardImg}>
-                {club.imagePath
-                  ? <img src={club.imagePath.startsWith('http') ? club.imagePath : `/images/clubs/${club.imagePath}`} alt={club.clubName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  : <div style={{ fontSize: 56 }}>{CATEGORY_EMOJI[club.category] ?? '🎪'}</div>
-                }
-              </div>
-              <div style={styles.cardBody}>
-                <span style={styles.cardCat}>{club.category}</span>
-                <h3 style={styles.cardName}>{club.clubName}</h3>
-                <p style={styles.cardDesc}>{club.description?.slice(0, 50)}...</p>
-                <div style={styles.cardBottom}>
-                  <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-                    {club.tags?.slice(0, 2).map((t, i) => (
-                      <span key={i} style={styles.tag}>{t.tagName}</span>
-                    ))}
+          {sorted.map((club) => {
+            const isClosed = club.isRecruiting === 'N';
+            return (
+              <div key={club.clubId} style={styles.card} onClick={() => navigate(`/clubs/${club.clubId}`)}>
+                <div style={styles.cardImg}>
+                  {club.imagePath
+                    ? <img src={club.imagePath.startsWith('http') ? club.imagePath : `/images/clubs/${club.imagePath}`} alt={club.clubName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    : <div style={{ fontSize: 56 }}>{CATEGORY_EMOJI[club.category] ?? '🎪'}</div>
+                  }
+                  {isClosed && (
+                    <div style={styles.closedOverlay}>
+                      <span style={styles.closedBadge}>모집 마감</span>
+                    </div>
+                  )}
+                </div>
+                <div style={styles.cardBody}>
+                  <span style={styles.cardCat}>{club.category}</span>
+                  <h3 style={styles.cardName}>{club.clubName}</h3>
+                  <p style={styles.cardDesc}>
+                    {club.description
+                      ? club.description.slice(0, 50) + (club.description.length > 50 ? '...' : '')
+                      : '소개글이 없습니다.'}
+                  </p>
+                  <div style={styles.cardBottom}>
+                    <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                      {club.tags?.slice(0, 2).map((t, i) => (
+                        <span key={i} style={styles.tag}>{t.tagName}</span>
+                      ))}
+                    </div>
+                    <span style={{ ...styles.memberInfo, color: isClosed ? '#ef4444' : '#6b7280' }}>
+                      최대 {club.maxMembers}명
+                    </span>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>
@@ -205,7 +234,9 @@ const styles = {
   chipExclude: { display: 'inline-flex', alignItems: 'center', padding: '3px 10px', borderRadius: 20, border: '1.5px solid #ef4444', color: '#ef4444', fontSize: 13, fontWeight: 600, background: '#fef2f2', cursor: 'pointer', userSelect: 'none' },
 
   section: { padding: '32px 40px', maxWidth: 1200, margin: '0 auto' },
-  sectionTitle: { fontSize: 20, fontWeight: 800, marginBottom: 16, color: '#2d1b0e' },
+  sectionTitle: { fontSize: 20, fontWeight: 800, color: '#2d1b0e' },
+  listHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
+  sortSelect: { padding: '8px 14px', border: '1.5px solid #ffe0d0', borderRadius: 8, fontSize: 13, color: '#7c5a4a', background: '#fff', cursor: 'pointer', outline: 'none' },
 
   popular: { display: 'flex', gap: 12, overflowX: 'auto', paddingBottom: 8, marginBottom: 32 },
   popItem: { minWidth: 130, background: '#fff', borderRadius: 16, padding: 16, textAlign: 'center', border: '2px solid #ffe8db', cursor: 'pointer', transition: 'border-color 0.15s' },
@@ -219,11 +250,14 @@ const styles = {
 
   grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 20 },
   card: { background: '#fff', borderRadius: 20, overflow: 'hidden', boxShadow: '0 4px 20px rgba(255,107,53,0.08)', border: '2px solid #ffe8db', cursor: 'pointer', transition: 'all 0.2s' },
-  cardImg: { height: 150, background: 'linear-gradient(135deg, #fff0e8, #ffe0cc)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+  cardImg: { position: 'relative', aspectRatio: '8/5', background: 'linear-gradient(135deg, #fff0e8, #ffe0cc)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+  closedOverlay: { position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  closedBadge: { background: '#ef4444', color: '#fff', padding: '6px 16px', borderRadius: 20, fontSize: 13, fontWeight: 700 },
   cardBody: { padding: '16px 18px 18px' },
   cardCat: { display: 'inline-block', fontSize: 11, fontWeight: 700, color: '#ff6b35', background: '#fff0e8', padding: '3px 10px', borderRadius: 100, marginBottom: 8 },
   cardName: { fontSize: 17, fontWeight: 800, marginBottom: 6, color: '#2d1b0e' },
   cardDesc: { fontSize: 13, color: '#7c5a4a', lineHeight: 1.5, marginBottom: 14 },
   cardBottom: { display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
   tag: { fontSize: 11, padding: '3px 8px', borderRadius: 100, background: '#fff0e8', color: '#ff6b35', fontWeight: 600 },
+  memberInfo: { fontSize: 12, fontWeight: 600, whiteSpace: 'nowrap', marginLeft: 4 },
 };

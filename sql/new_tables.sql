@@ -1,3 +1,7 @@
+-- ── 모집 상태 컬럼 추가 ───────────────────────────────
+ALTER TABLE clubs ADD COLUMN IF NOT EXISTS is_recruiting VARCHAR(1) DEFAULT 'Y';
+UPDATE clubs SET is_recruiting = 'Y' WHERE is_recruiting IS NULL;
+
 -- ── 공지사항 ──────────────────────────────────────────
 CREATE SEQUENCE seq_notice_id START WITH 1 INCREMENT BY 1;
 

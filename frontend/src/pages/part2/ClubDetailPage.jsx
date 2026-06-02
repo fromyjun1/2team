@@ -81,9 +81,10 @@ export default function ClubDetailPage({ userId }) {
 
   if (!club) return <p style={{ textAlign: 'center', marginTop: 80 }}>불러오는 중...</p>;
 
-  const isFull    = memberCount >= club.maxMembers;
-  const isCreator = club.creatorId === userId;
-  const isMember  = appStatus === 'APPROVED';
+  const isFull     = memberCount >= club.maxMembers;
+  const isClosed   = club.isRecruiting === 'N';
+  const isCreator  = club.creatorId === userId;
+  const isMember   = appStatus === 'APPROVED';
 
   return (
     <div style={styles.container} className="club-detail-container">
@@ -153,8 +154,10 @@ export default function ClubDetailPage({ userId }) {
         {!isCreator && userId && (
           <div style={{ ...styles.statusBox, background: APP_STATUS[appStatus]?.bg || '#f8fafc', borderColor: APP_STATUS[appStatus]?.color || '#e5e7eb' }}>
             {appStatus === null && (
-              isFull
-                ? <span style={{ ...styles.statusText, color: '#ef4444' }}>🔴 모집 마감 — 현재 신청을 받지 않습니다.</span>
+              (isFull || isClosed)
+                ? <span style={{ ...styles.statusText, color: '#ef4444' }}>
+                    🔴 {isClosed ? '모집이 마감되었습니다.' : '모집 마감 — 현재 정원이 가득 찼습니다.'}
+                  </span>
                 : <button style={styles.applyBtn} onClick={() => { if (!requireLogin()) setApplying(!applying); }}>
                     {applying ? '취소' : '가입 신청하기'}
                   </button>
@@ -175,7 +178,7 @@ export default function ClubDetailPage({ userId }) {
                 <span style={{ ...styles.statusText, color: APP_STATUS[appStatus].color }}>
                   {appStatus === 'REJECTED' ? '❌ 신청이 거절되었습니다.' : '👋 탈퇴한 동아리입니다.'}
                 </span>
-                {!isFull && (
+                {!(isFull || isClosed) && (
                   <button style={styles.applyBtn} onClick={() => { if (!requireLogin()) setApplying(!applying); }}>
                     {applying ? '취소' : '다시 신청하기'}
                   </button>

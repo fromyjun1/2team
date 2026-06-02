@@ -38,6 +38,9 @@ public class Club {
     @Column(name = "IS_ACTIVE")
     private String isActive = "Y";
 
+    @Column(name = "IS_RECRUITING")
+    private String isRecruiting = "Y";
+
     @Column(name = "CREATOR_ID")
     private Long creatorId;
 

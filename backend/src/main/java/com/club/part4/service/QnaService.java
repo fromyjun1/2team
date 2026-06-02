@@ -27,9 +27,16 @@ public class QnaService {
 
     public List<QnaBoard> getList(Long clubId, Long currentUserId) {
         List<QnaBoard> all = qnaRepository.findByClubIdOrderByCreatedAt(clubId);
+
+        Long creatorId = clubRepository.findById(clubId)
+            .map(c -> c.getCreatorId())
+            .orElse(null);
+
         List<QnaBoard> questions = all.stream()
             .filter(q -> q.getParentId() == null)
-            .filter(q -> !"Y".equals(q.getIsSecret()) || q.getAuthorId().equals(currentUserId))
+            .filter(q -> !"Y".equals(q.getIsSecret())
+                      || q.getAuthorId().equals(currentUserId)
+                      || (creatorId != null && creatorId.equals(currentUserId)))
             .collect(Collectors.toList());
         questions.forEach(q -> {
             List<QnaBoard> replies = all.stream()
@@ -50,10 +57,6 @@ public class QnaService {
             .stream()
             .map(a -> a.getUserId())
             .collect(Collectors.toSet());
-
-        Long creatorId = clubRepository.findById(clubId)
-            .map(c -> c.getCreatorId())
-            .orElse(null);
 
         questions.forEach(q -> {
             q.setAuthorName(nameMap.getOrDefault(q.getAuthorId(), "알 수 없음"));
