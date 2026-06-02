@@ -144,10 +144,10 @@ const styles = {
   input:           { padding: '11px 14px', border: '1px solid #ddd', borderRadius: 8, fontSize: 14 },
   textarea:        { padding: '11px 14px', border: '1px solid #ddd', borderRadius: 8, fontSize: 14, resize: 'vertical' },
   tagBox:          { display: 'flex', flexWrap: 'wrap', gap: 6, border: '1px solid #ddd', borderRadius: 8, padding: '8px 12px', cursor: 'text', minHeight: 44 },
-  chip:            { display: 'inline-flex', alignItems: 'center', padding: '3px 10px', borderRadius: 20, border: '1.5px solid #4f46e5', color: '#4f46e5', background: '#eef2ff', fontSize: 13, fontWeight: 600, cursor: 'pointer', userSelect: 'none' },
+  chip:            { display: 'inline-flex', alignItems: 'center', padding: '3px 10px', borderRadius: 20, border: '1.5px solid #ff6b35', color: '#ff6b35', background: '#fff0e8', fontSize: 13, fontWeight: 600, cursor: 'pointer', userSelect: 'none' },
   tagInput:        { flex: 1, minWidth: 100, border: 'none', outline: 'none', fontSize: 14, padding: '2px 0' },
   error:           { color: '#ef4444', fontSize: 13 },
   btnRow:          { display: 'flex', gap: 10, marginTop: 8 },
   cancelBtn:       { flex: 1, padding: 12, border: '1px solid #ddd', borderRadius: 8, background: '#fff', fontSize: 15, cursor: 'pointer' },
-  submitBtn:       { flex: 2, padding: 12, background: '#4f46e5', color: '#fff', border: 'none', borderRadius: 8, fontSize: 15, cursor: 'pointer' },
+  submitBtn:       { flex: 2, padding: 12, background: '#ff6b35', color: '#fff', border: 'none', borderRadius: 8, fontSize: 15, cursor: 'pointer' },
 };

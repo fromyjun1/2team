@@ -30,7 +30,8 @@ export const login  = (data) => api.post('/users/login', data);
 export const getMe          = ()             => api.get('/users/me');
 export const checkEmail     = (email)        => api.get('/users/check-email', { params: { email } });
 export const findEmail      = (name, studentNo) => api.get('/users/find-email', { params: { name, studentNo } });
-export const changePassword = (email, newPassword) => api.put('/users/change-password', { email, newPassword });
+export const sendVerification = (email) => api.post('/users/send-verification', { email });
+export const changePassword = (email, code, newPassword) => api.put('/users/change-password', { email, code, newPassword });
 export const changePasswordLoggedIn = (userId, currentPassword, newPassword) =>
   api.patch(`/users/${userId}/password`, { currentPassword, newPassword });
 export const getTags    = (userId) => api.get(`/users/${userId}/tags`);
@@ -79,4 +80,5 @@ export const getAdminUsers        = ()             => api.get('/admin/users');
 export const changeUserRole       = (userId, role) => api.patch(`/admin/users/${userId}/role`, { role });
 export const getAdminClubs        = ()             => api.get('/admin/clubs');
 export const deactivateClub       = (clubId)       => api.delete(`/admin/clubs/${clubId}`);
+export const deleteClubPermanent  = (clubId)       => api.delete(`/admin/clubs/${clubId}/permanent`);
 export const getAdminApplications = ()             => api.get('/admin/applications');

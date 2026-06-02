@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
   getAdminStats, getAdminUsers, changeUserRole,
-  getAdminClubs, deactivateClub,
+  getAdminClubs, deactivateClub, deleteClubPermanent,
   getAdminApplications, updateAppStatus,
 } from '../../api';
 
@@ -43,6 +43,12 @@ export default function AdminPage() {
     catch { alert('비활성화에 실패했습니다.'); }
   };
 
+  const handleDelete = async (clubId, clubName) => {
+    if (!window.confirm(`"${clubName}" 동아리를 완전히 삭제하시겠습니까?\n관련 신청, 찜, Q&A가 모두 삭제되며 복구할 수 없습니다.`)) return;
+    try { await deleteClubPermanent(clubId); load(getAdminClubs, setClubs); }
+    catch { alert('삭제에 실패했습니다.'); }
+  };
+
   const handleAppStatus = async (appId, status) => {
     try { await updateAppStatus(appId, status, null); load(getAdminApplications, setApps); }
     catch { alert('상태 변경에 실패했습니다.'); }
@@ -72,7 +78,7 @@ export default function AdminPage() {
       {!loading && tab === 0 && stats && (
         <div style={s.statsGrid}>
           <StatCard label="총 회원"    value={stats.users}        color="#ff6b35" />
-          <StatCard label="활성 동아리" value={stats.clubs}        color="#4f46e5" />
+          <StatCard label="활성 동아리" value={stats.clubs}        color="#ff6b35" />
           <StatCard label="총 신청"    value={stats.applications} color="#059669" />
           <StatCard label="대기 중"    value={stats.pending}      color="#d97706" />
         </div>
@@ -140,11 +146,16 @@ export default function AdminPage() {
                     </span>
                   </td>
                   <td style={s.td}>
-                    {c.isActive === 'Y' && (
-                      <button style={s.dangerBtn} onClick={() => handleDeactivate(c.clubId, c.clubName)}>
-                        비활성화
+                    <div style={{ display: 'flex', gap: 6 }}>
+                      {c.isActive === 'Y' && (
+                        <button style={s.dangerBtn} onClick={() => handleDeactivate(c.clubId, c.clubName)}>
+                          비활성화
+                        </button>
+                      )}
+                      <button style={s.deleteBtn} onClick={() => handleDelete(c.clubId, c.clubName)}>
+                        삭제
                       </button>
-                    )}
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -243,6 +254,7 @@ const s = {
   select:      { padding: '6px 10px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 13, cursor: 'pointer' },
   badge:       { display: 'inline-block', padding: '3px 10px', borderRadius: 20, fontSize: 12, fontWeight: 600 },
   dangerBtn:   { padding: '6px 12px', background: '#fee2e2', color: '#dc2626', border: 'none', borderRadius: 6, fontSize: 13, cursor: 'pointer', fontWeight: 600 },
+  deleteBtn:   { padding: '6px 12px', background: '#dc2626', color: '#fff', border: 'none', borderRadius: 6, fontSize: 13, cursor: 'pointer', fontWeight: 600 },
   filterRow:   { display: 'flex', gap: 8, marginBottom: 16 },
   filterBtn:   { padding: '8px 18px', border: '1px solid #e5e7eb', borderRadius: 20, background: '#fff', fontSize: 13, fontWeight: 600, color: '#6b7280', cursor: 'pointer' },
   filterActive:{ background: '#ff6b35', color: '#fff', borderColor: '#ff6b35' },

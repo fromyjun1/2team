@@ -77,9 +77,9 @@ const styles = {
     background: '#fff', cursor: 'pointer', fontSize: 14, color: '#555',
     transition: 'all 0.15s',
   },
-  tagSelected: { borderColor: '#4f46e5', background: '#eef2ff', color: '#4f46e5', fontWeight: 600 },
+  tagSelected: { borderColor: '#ff6b35', background: '#fff0e8', color: '#ff6b35', fontWeight: 600 },
   saveBtn: {
-    width: '100%', padding: 14, background: '#4f46e5', color: '#fff',
+    width: '100%', padding: 14, background: '#ff6b35', color: '#fff',
     border: 'none', borderRadius: 10, fontSize: 15, cursor: 'pointer',
   },
   error: { color: '#e53e3e', fontSize: 13, marginBottom: 8, textAlign: 'center' },

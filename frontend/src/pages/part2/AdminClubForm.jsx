@@ -117,9 +117,9 @@ const styles = {
   row: { display: 'flex', gap: 16 },
   tagGrid: { display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 8 },
   tag: { padding: '7px 14px', borderRadius: 20, border: '2px solid #e5e7eb', background: '#fff', cursor: 'pointer', fontSize: 13 },
-  tagOn: { borderColor: '#4f46e5', background: '#eef2ff', color: '#4f46e5', fontWeight: 600 },
+  tagOn: { borderColor: '#ff6b35', background: '#fff0e8', color: '#ff6b35', fontWeight: 600 },
   fileInput: { fontSize: 14 },
   preview: { width: '100%', maxHeight: 160, objectFit: 'cover', borderRadius: 8, marginTop: 4 },
   error: { color: '#e53e3e', fontSize: 13, margin: 0 },
-  btn: { marginTop: 8, padding: 13, background: '#4f46e5', color: '#fff', border: 'none', borderRadius: 8, fontSize: 15, cursor: 'pointer' },
+  btn: { marginTop: 8, padding: 13, background: '#ff6b35', color: '#fff', border: 'none', borderRadius: 8, fontSize: 15, cursor: 'pointer' },
 };

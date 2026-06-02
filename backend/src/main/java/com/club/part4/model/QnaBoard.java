@@ -43,4 +43,7 @@ public class QnaBoard {
 
     @Transient
     private String authorName;
+
+    @Transient
+    private boolean member;
 }

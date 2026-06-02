@@ -97,6 +97,14 @@ public class ClubService {
     }
 
     @Transactional
+    public void deleteClub(Long clubId) {
+        if (!clubRepository.existsById(clubId)) {
+            throw new IllegalArgumentException("동아리를 찾을 수 없습니다.");
+        }
+        clubRepository.deleteById(clubId);
+    }
+
+    @Transactional
     public void updateTags(Long clubId, List<String> tags) {
         Club club = clubRepository.findById(clubId)
             .orElseThrow(() -> new IllegalArgumentException("동아리를 찾을 수 없습니다."));

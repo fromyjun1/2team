@@ -23,7 +23,10 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.club.config.JwtUtil;
 import com.club.part1.model.User;
+import com.club.part1.service.EmailVerificationService;
 import com.club.part1.service.UserService;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import com.google.cloud.storage.BlobInfo;
 import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.StorageOptions;
@@ -37,6 +40,8 @@ public class UserController {
 
     private final UserService userService;
     private final JwtUtil jwtUtil;
+    private final JavaMailSender mailSender;
+    private final EmailVerificationService verificationService;
 
     @Value("${app.gcs.bucket}")
     private String gcsBucket;
@@ -54,10 +59,26 @@ public class UserController {
         return ResponseEntity.ok(Map.of("email", userService.findEmail(name, studentNo)));
     }
 
-    // PUT /api/users/change-password — 비밀번호 변경 (공개)
+    // POST /api/users/send-verification — 이메일로 인증코드 발송 (공개)
+    @PostMapping("/send-verification")
+    public ResponseEntity<Void> sendVerification(@RequestBody Map<String, String> body) {
+        String email = body.get("email");
+        userService.findUserByEmail(email); // 존재하지 않으면 예외
+        String code = verificationService.generateAndStore(email);
+        SimpleMailMessage msg = new SimpleMailMessage();
+        msg.setFrom("fromyjun14@gmail.com");
+        msg.setTo(email);
+        msg.setSubject("[동아리 시스템] 비밀번호 변경 인증코드");
+        msg.setText("인증코드: " + code + "\n\n5분 내에 입력해주세요.");
+        mailSender.send(msg);
+        return ResponseEntity.ok().build();
+    }
+
+    // PUT /api/users/change-password — 인증코드 확인 후 비밀번호 변경 (공개)
     @PutMapping("/change-password")
     public ResponseEntity<Void> changePassword(@RequestBody Map<String, String> body) {
-        userService.changePassword(body.get("email"), body.get("newPassword"));
+        userService.verifyAndChangePassword(
+            body.get("email"), body.get("code"), body.get("newPassword"), verificationService);
         return ResponseEntity.ok().build();
     }
 

@@ -200,8 +200,23 @@ export default function ClubManagePage({ user }) {
             ? <p style={styles.empty}>승인된 멤버가 없습니다.</p>
             : members.map((app) => (
               <div key={app.appId} style={styles.memberCard}>
-                <span style={styles.memberName}>{app.userName}</span>
-                <span style={styles.memberDate}>{new Date(app.appliedAt).toLocaleDateString()} 가입</span>
+                <div>
+                  <span style={styles.memberName}>{app.userName}</span>
+                  <span style={styles.memberBadge}>멤버</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <span style={styles.memberDate}>{new Date(app.appliedAt).toLocaleDateString()} 가입</span>
+                  <button
+                    style={styles.kickBtn}
+                    onClick={() => {
+                      if (window.confirm(`${app.userName}님을 추방하시겠습니까?`)) {
+                        handleStatus(app.appId, 'KICKED');
+                      }
+                    }}
+                  >
+                    추방
+                  </button>
+                </div>
               </div>
             ))}
         </div>
@@ -212,11 +227,11 @@ export default function ClubManagePage({ user }) {
 
 const styles = {
   container:       { maxWidth: 680, margin: '40px auto', padding: '0 20px' },
-  backBtn:         { background: 'none', border: 'none', color: '#4f46e5', cursor: 'pointer', fontSize: 14, marginBottom: 12, padding: 0 },
+  backBtn:         { background: 'none', border: 'none', color: '#ff6b35', cursor: 'pointer', fontSize: 14, marginBottom: 12, padding: 0 },
   title:           { fontSize: 22, marginBottom: 20 },
   tabBar:          { display: 'flex', borderBottom: '2px solid #e5e7eb', marginBottom: 24 },
   tab:             { padding: '10px 24px', border: 'none', background: 'none', cursor: 'pointer', fontSize: 14, color: '#888', display: 'flex', alignItems: 'center', gap: 6 },
-  tabActive:       { padding: '10px 24px', border: 'none', background: 'none', cursor: 'pointer', fontSize: 14, color: '#4f46e5', fontWeight: 700, borderBottom: '2px solid #4f46e5', marginBottom: -2, display: 'flex', alignItems: 'center', gap: 6 },
+  tabActive:       { padding: '10px 24px', border: 'none', background: 'none', cursor: 'pointer', fontSize: 14, color: '#ff6b35', fontWeight: 700, borderBottom: '2px solid #ff6b35', marginBottom: -2, display: 'flex', alignItems: 'center', gap: 6 },
   badge:           { background: '#ef4444', color: '#fff', borderRadius: 10, padding: '1px 7px', fontSize: 11, fontWeight: 700 },
   empty:           { color: '#aaa', textAlign: 'center', marginTop: 40 },
   appCard:         { background: '#fff', borderRadius: 10, padding: '18px 22px', marginBottom: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.05)' },
@@ -236,10 +251,12 @@ const styles = {
   input:           { padding: '10px 14px', border: '1px solid #ddd', borderRadius: 8, fontSize: 14 },
   textarea:        { padding: '10px 14px', border: '1px solid #ddd', borderRadius: 8, fontSize: 14, resize: 'vertical' },
   tagBox:          { display: 'flex', flexWrap: 'wrap', gap: 6, border: '1px solid #ddd', borderRadius: 8, padding: '8px 12px', cursor: 'text', minHeight: 42 },
-  chip:            { display: 'inline-flex', alignItems: 'center', padding: '3px 10px', borderRadius: 20, border: '1.5px solid #4f46e5', color: '#4f46e5', background: '#eef2ff', fontSize: 13, cursor: 'pointer', userSelect: 'none' },
+  chip:            { display: 'inline-flex', alignItems: 'center', padding: '3px 10px', borderRadius: 20, border: '1.5px solid #ff6b35', color: '#ff6b35', background: '#fff0e8', fontSize: 13, cursor: 'pointer', userSelect: 'none' },
   tagInput:        { flex: 1, minWidth: 80, border: 'none', outline: 'none', fontSize: 14 },
-  saveBtn:         { marginTop: 8, padding: 12, background: '#4f46e5', color: '#fff', border: 'none', borderRadius: 8, fontSize: 15, cursor: 'pointer' },
+  saveBtn:         { marginTop: 8, padding: 12, background: '#ff6b35', color: '#fff', border: 'none', borderRadius: 8, fontSize: 15, cursor: 'pointer' },
   memberCard:      { display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#fff', borderRadius: 10, padding: '14px 20px', marginBottom: 10, boxShadow: '0 2px 6px rgba(0,0,0,0.05)' },
-  memberName:      { fontSize: 15, fontWeight: 600 },
+  memberName:      { fontSize: 15, fontWeight: 600, marginRight: 8 },
+  memberBadge:     { display: 'inline-block', padding: '2px 8px', borderRadius: 20, background: '#fff0e8', color: '#ff6b35', fontSize: 11, fontWeight: 700, border: '1px solid #ffe0d0' },
   memberDate:      { fontSize: 13, color: '#aaa' },
+  kickBtn:         { padding: '5px 12px', background: '#fee2e2', color: '#dc2626', border: 'none', borderRadius: 6, fontSize: 12, fontWeight: 700, cursor: 'pointer' },
 };
