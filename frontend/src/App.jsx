@@ -22,31 +22,58 @@ import QnaPage         from './pages/part4/QnaPage';
 
 // ── 네비게이션 바 ─────────────────────────────────
 function Navbar({ user, onLogout }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const close = () => setMenuOpen(false);
+
   return (
-    <nav style={nav.bar}>
-      <Link to="/" style={nav.logo}>🎯 동아리 매칭</Link>
-      <div style={nav.links}>
-        <Link to="/clubs" style={nav.link}>동아리 탐색</Link>
-        <Link to="/recommend" style={nav.link}>추천 받기</Link>
-        <Link to="/wishlist" style={nav.link}>찜 목록</Link>
-        <Link to="/applications" style={nav.link}>신청 현황</Link>
-        {user && <Link to="/clubs/new" style={nav.link}>동아리 만들기</Link>}
-        {user?.role === 'ADMIN' && <Link to="/admin" style={nav.link}>관리자</Link>}
-      </div>
-      <div style={nav.right}>
+    <>
+      <nav className="nav-bar">
+        <Link to="/" className="nav-logo" onClick={close}>🎯 동아리 매칭</Link>
+        <div className="nav-links">
+          <Link to="/clubs" className="nav-link">동아리 탐색</Link>
+          <Link to="/recommend" className="nav-link">추천 받기</Link>
+          <Link to="/wishlist" className="nav-link">찜 목록</Link>
+          <Link to="/applications" className="nav-link">신청 현황</Link>
+          {user && <Link to="/clubs/new" className="nav-link">동아리 만들기</Link>}
+          {user?.role === 'ADMIN' && <Link to="/admin" className="nav-link">관리자</Link>}
+        </div>
+        <div className="nav-right">
+          {user ? (
+            <>
+              <Link to="/mypage" className="nav-link">{user.name}님</Link>
+              <button className="nav-btn" onClick={onLogout}>로그아웃</button>
+            </>
+          ) : (
+            <>
+              <Link to="/login" className="nav-link">로그인</Link>
+              <Link to="/signup" className="nav-signup">회원가입</Link>
+            </>
+          )}
+        </div>
+        <button className="nav-hamburger" onClick={() => setMenuOpen(m => !m)} aria-label="메뉴">
+          {menuOpen ? '✕' : '☰'}
+        </button>
+      </nav>
+      <div className={`nav-mobile-menu${menuOpen ? ' open' : ''}`}>
+        <Link to="/clubs" onClick={close}>동아리 탐색</Link>
+        <Link to="/recommend" onClick={close}>추천 받기</Link>
+        <Link to="/wishlist" onClick={close}>찜 목록</Link>
+        <Link to="/applications" onClick={close}>신청 현황</Link>
+        {user && <Link to="/clubs/new" onClick={close}>동아리 만들기</Link>}
+        {user?.role === 'ADMIN' && <Link to="/admin" onClick={close}>관리자</Link>}
         {user ? (
           <>
-            <Link to="/mypage" style={nav.link}>{user.name}님</Link>
-            <button style={nav.btn} onClick={onLogout}>로그아웃</button>
+            <Link to="/mypage" onClick={close}>{user.name}님</Link>
+            <button className="nav-mobile-logout" onClick={() => { onLogout(); close(); }}>로그아웃</button>
           </>
         ) : (
           <>
-            <Link to="/login" style={nav.link}>로그인</Link>
-            <Link to="/signup" style={{ ...nav.link, ...nav.signupBtn }}>회원가입</Link>
+            <Link to="/login" onClick={close}>로그인</Link>
+            <Link to="/signup" className="nav-mobile-signup" onClick={close}>회원가입</Link>
           </>
         )}
       </div>
-    </nav>
+    </>
   );
 }
 
@@ -165,12 +192,3 @@ export default function App() {
   );
 }
 
-const nav = {
-  bar: { position: 'fixed', top: 0, left: 0, right: 0, height: 64, background: '#fff', boxShadow: '0 2px 12px rgba(255,120,60,0.08)', display: 'flex', alignItems: 'center', padding: '0 40px', gap: 32, zIndex: 100 },
-  logo: { fontWeight: 900, fontSize: 20, color: '#ff6b35', textDecoration: 'none', marginRight: 8 },
-  links: { display: 'flex', gap: 28, flex: 1 },
-  link: { color: '#7c5a4a', fontSize: 14, textDecoration: 'none', fontWeight: 600 },
-  right: { display: 'flex', gap: 10, alignItems: 'center' },
-  btn: { padding: '8px 18px', border: '2px solid #ff6b35', borderRadius: 100, background: '#fff', cursor: 'pointer', fontSize: 14, color: '#ff6b35', fontWeight: 700 },
-  signupBtn: { background: '#ff6b35', color: '#fff', padding: '8px 18px', borderRadius: 100, border: 'none', fontWeight: 700 },
-};

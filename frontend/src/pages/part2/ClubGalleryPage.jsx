@@ -90,7 +90,7 @@ export default function ClubGalleryPage() {
   return (
     <div style={{ background: '#fff9f5', minHeight: '100vh' }}>
       {/* 배너 */}
-      <div style={styles.banner}>
+      <div style={styles.banner} className="gallery-banner">
         <div style={styles.bannerLeft}>
           <h1 style={styles.bannerTitle}>내 취향에 딱!<br />동아리 매칭 🎯</h1>
           <p style={styles.bannerDesc}>관심 태그를 선택하면 AI가 나에게 맞는<br />동아리를 추천해드려요</p>
@@ -120,10 +120,10 @@ export default function ClubGalleryPage() {
             <button style={styles.searchBtn}>검색</button>
           </div>
         </div>
-        <div style={{ fontSize: 100, lineHeight: 1 }}>🎪</div>
+        <div className="gallery-banner-emoji" style={{ fontSize: 100, lineHeight: 1 }}>🎪</div>
       </div>
 
-      <div style={styles.section}>
+      <div style={styles.section} className="gallery-section">
         {/* 인기 카테고리 */}
         <div style={styles.sectionTitle}>인기 카테고리</div>
         <div style={styles.popular}>

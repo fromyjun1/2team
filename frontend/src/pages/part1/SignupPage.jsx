@@ -86,8 +86,8 @@ export default function SignupPage({ onSignup }) {
   const strength = getPasswordStrength(form.password);
 
   return (
-    <div style={styles.container}>
-      <div style={styles.card}>
+    <div style={styles.container} className="signup-container">
+      <div style={styles.card} className="signup-card">
         <h2 style={styles.title}>회원가입</h2>
         <form onSubmit={handleSubmit} style={styles.form}>
           <div>
