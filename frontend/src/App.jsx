@@ -182,7 +182,7 @@ export default function App() {
           <Route path="/recommend" element={<ProfileRequiredRoute user={user}><RecommendPage userId={user?.userId} /></ProfileRequiredRoute>} />
           <Route path="/wishlist"  element={<ProfileRequiredRoute user={user}><WishlistPage userId={user?.userId} /></ProfileRequiredRoute>} />
           <Route path="/applications" element={<ProfileRequiredRoute user={user}><ApplicationPage userId={user?.userId} /></ProfileRequiredRoute>} />
-          <Route path="/clubs/:clubId/qna" element={<PrivateRoute user={user}><QnaPage userId={user?.userId} /></PrivateRoute>} />
+          <Route path="/clubs/:clubId/qna" element={<PrivateRoute user={user}><QnaPage user={user} /></PrivateRoute>} />
 
           {/* 관리자 */}
           <Route path="/admin" element={<AdminRoute user={user}><AdminPage /></AdminRoute>} />

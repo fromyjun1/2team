@@ -6,4 +6,5 @@ import java.util.List;
 
 public interface QnaRepository extends JpaRepository<QnaBoard, Long> {
     List<QnaBoard> findByClubIdOrderByCreatedAt(Long clubId);
+    List<QnaBoard> findByParentId(Long parentId);
 }

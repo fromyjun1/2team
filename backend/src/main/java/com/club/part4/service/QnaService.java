@@ -1,6 +1,9 @@
 package com.club.part4.service;
 
+import com.club.part1.model.User;
 import com.club.part1.repository.UserRepository;
+import com.club.part2.model.Club;
+import com.club.part2.repository.ClubRepository;
 import com.club.part4.model.QnaBoard;
 import com.club.part4.repository.ApplicationRepository;
 import com.club.part4.repository.QnaRepository;
@@ -19,6 +22,7 @@ public class QnaService {
 
     private final QnaRepository qnaRepository;
     private final UserRepository userRepository;
+    private final ClubRepository clubRepository;
     private final ApplicationRepository applicationRepository;
 
     public List<QnaBoard> getList(Long clubId, Long currentUserId) {
@@ -80,5 +84,40 @@ public class QnaService {
         reply.setParentId(parentId);
         reply.setContent(content);
         return qnaRepository.save(reply);
+    }
+
+    @Transactional
+    public void update(Long qnaId, Long requestUserId, String title, String content) {
+        QnaBoard qna = qnaRepository.findById(qnaId)
+            .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
+        checkPermission(qna, requestUserId);
+        if (title != null) qna.setTitle(title);
+        qna.setContent(content);
+        qnaRepository.save(qna);
+    }
+
+    @Transactional
+    public void delete(Long qnaId, Long requestUserId) {
+        QnaBoard qna = qnaRepository.findById(qnaId)
+            .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
+        checkPermission(qna, requestUserId);
+        if (qna.getParentId() == null) {
+            qnaRepository.deleteAll(qnaRepository.findByParentId(qnaId));
+        }
+        qnaRepository.delete(qna);
+    }
+
+    private void checkPermission(QnaBoard qna, Long requestUserId) {
+        if (qna.getAuthorId().equals(requestUserId)) return;
+
+        Club club = clubRepository.findById(qna.getClubId())
+            .orElseThrow(() -> new IllegalArgumentException("동아리를 찾을 수 없습니다."));
+        if (club.getCreatorId().equals(requestUserId)) return;
+
+        User user = userRepository.findById(requestUserId)
+            .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+        if ("ADMIN".equals(user.getRole())) return;
+
+        throw new SecurityException("권한이 없습니다.");
     }
 }

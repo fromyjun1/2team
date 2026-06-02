@@ -73,6 +73,8 @@ export const updateAppStatus    = (appId, status, comment) =>
 export const getQnaList     = (clubId) => api.get(`/qna/club/${clubId}`);
 export const createQuestion = (data)   => api.post('/qna', data);
 export const createReply    = (parentId, data) => api.post(`/qna/${parentId}/reply`, data);
+export const updateQna      = (qnaId, data)    => api.put(`/qna/${qnaId}`, data);
+export const deleteQna      = (qnaId)          => api.delete(`/qna/${qnaId}`);
 
 // ── 관리자 ──────────────────────────────────
 export const getAdminStats        = ()             => api.get('/admin/stats');

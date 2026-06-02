@@ -26,6 +26,8 @@ Thumbs.db
 # ── 로그 ──
 *.log
 logs/
+backend-log.txt
+frontend-log.txt
 
 # ── Cloud SQL Proxy (바이너리, 개인 설치) ──
 cloud-sql-proxy.exe

@@ -48,4 +48,31 @@ public class QnaController {
             (String) body.get("content")
         ));
     }
+
+    // PUT /api/qna/{qnaId}  — 게시글 수정 (작성자 / 동아리장 / ADMIN)
+    @PutMapping("/{qnaId}")
+    public ResponseEntity<Void> update(@PathVariable Long qnaId,
+                                       @RequestBody Map<String, Object> body) {
+        Long requestUserId = (Long) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        try {
+            qnaService.update(qnaId, requestUserId,
+                (String) body.get("title"),
+                (String) body.get("content"));
+            return ResponseEntity.ok().build();
+        } catch (SecurityException e) {
+            return ResponseEntity.status(403).build();
+        }
+    }
+
+    // DELETE /api/qna/{qnaId}  — 게시글 삭제 (작성자 / 동아리장 / ADMIN, 질문 삭제 시 답변도 함께 삭제)
+    @DeleteMapping("/{qnaId}")
+    public ResponseEntity<Void> delete(@PathVariable Long qnaId) {
+        Long requestUserId = (Long) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        try {
+            qnaService.delete(qnaId, requestUserId);
+            return ResponseEntity.ok().build();
+        } catch (SecurityException e) {
+            return ResponseEntity.status(403).build();
+        }
+    }
 }
