@@ -25,14 +25,9 @@ export default function LoginPage({ onLogin }) {
     <div style={styles.wrap}>
       {/* 왼쪽 소개 패널 */}
       <div style={styles.left} className="login-left">
-        <div style={{ fontSize: 80, marginBottom: 24 }}>🎪</div>
-        <h2 style={styles.leftTitle}>동아리 매칭</h2>
-        <p style={styles.leftDesc}>
-          관심 태그 기반 AI 매칭으로<br />나에게 딱 맞는 동아리를 찾아보세요!<br /><br />
-          ✅ 간편한 태그 선택<br />
-          ✅ AI 맞춤 추천<br />
-          ✅ 쉬운 가입 신청
-        </p>
+        <div style={{ fontSize: 80, marginBottom: 24 }}>🎯</div>
+        <h2 style={styles.leftTitle}>동아리 매칭 🎯</h2>
+        <p style={styles.leftDesc}>관심사 태그로 나와 맞는 동아리를 찾아보세요</p>
       </div>
 
       {/* 오른쪽 폼 */}

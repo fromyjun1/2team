@@ -92,8 +92,8 @@ export default function ClubGalleryPage() {
       {/* 배너 */}
       <div style={styles.banner} className="gallery-banner">
         <div style={styles.bannerLeft}>
-          <h1 style={styles.bannerTitle}>내 취향에 딱!<br />동아리 매칭 🎯</h1>
-          <p style={styles.bannerDesc}>관심 태그를 선택하면 AI가 나에게 맞는<br />동아리를 추천해드려요</p>
+          <h1 style={styles.bannerTitle}>동아리 매칭 🎯</h1>
+          <p style={styles.bannerDesc}>관심사 태그로 나와 맞는 동아리를 찾아보세요</p>
           <div style={styles.bannerSearch} onClick={() => inputRef.current?.focus()}>
             {chips.map((chip, i) => (
               <span
