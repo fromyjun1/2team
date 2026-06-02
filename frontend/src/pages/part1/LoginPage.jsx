@@ -24,7 +24,7 @@ export default function LoginPage({ onLogin }) {
   return (
     <div style={styles.wrap}>
       {/* 왼쪽 소개 패널 */}
-      <div style={styles.left}>
+      <div style={styles.left} className="login-left">
         <div style={{ fontSize: 80, marginBottom: 24 }}>🎪</div>
         <h2 style={styles.leftTitle}>동아리 매칭</h2>
         <p style={styles.leftDesc}>
@@ -36,7 +36,7 @@ export default function LoginPage({ onLogin }) {
       </div>
 
       {/* 오른쪽 폼 */}
-      <div style={styles.right}>
+      <div style={styles.right} className="login-right">
         <div style={styles.card}>
           <div style={styles.title}>반갑습니다! 👋</div>
           <div style={styles.sub}>계정으로 로그인하세요</div>

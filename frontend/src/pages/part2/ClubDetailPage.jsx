@@ -52,7 +52,7 @@ export default function ClubDetailPage({ userId }) {
   if (!club) return <p style={{ textAlign: 'center', marginTop: 80 }}>불러오는 중...</p>;
 
   return (
-    <div style={styles.container}>
+    <div style={styles.container} className="club-detail-container">
       {/* 헤더 이미지 */}
       <div style={styles.heroBox}>
         {club.imagePath
@@ -60,7 +60,7 @@ export default function ClubDetailPage({ userId }) {
           : <div style={styles.heroPlaceholder}>{club.clubName[0]}</div>}
       </div>
 
-      <div style={styles.content}>
+      <div style={styles.content} className="club-detail-content">
         {/* 기본 정보 */}
         <div style={styles.topRow}>
           <div>
@@ -84,13 +84,13 @@ export default function ClubDetailPage({ userId }) {
         )}
 
         {/* 정보 그리드 */}
-        <div style={styles.infoGrid}>
+        <div style={styles.infoGrid} className="club-detail-infogrid">
           <div style={styles.infoBox}><p style={styles.infoLabel}>최대 인원</p><p style={styles.infoVal}>{club.maxMembers}명</p></div>
           <div style={styles.infoBox}><p style={styles.infoLabel}>문의 이메일</p><p style={styles.infoVal}>{club.contactEmail}</p></div>
         </div>
 
         {/* 하단 버튼 */}
-        <div style={styles.btnRow}>
+        <div style={styles.btnRow} className="club-detail-btnrow">
           <Link to={`/clubs/${clubId}/qna`} style={styles.qnaBtn}>Q&A 게시판</Link>
           {club.creatorId === userId ? (
             <button style={styles.manageBtn} onClick={() => navigate(`/clubs/${clubId}/manage`)}>
