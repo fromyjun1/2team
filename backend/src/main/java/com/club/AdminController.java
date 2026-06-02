@@ -55,6 +55,12 @@ public class AdminController {
         return ResponseEntity.ok().build();
     }
 
+    @DeleteMapping("/clubs/{clubId}/permanent")
+    public ResponseEntity<Void> deleteClub(@PathVariable Long clubId) {
+        clubService.deleteClub(clubId);
+        return ResponseEntity.ok().build();
+    }
+
     @GetMapping("/applications")
     public ResponseEntity<List<Map<String, Object>>> getAllApplications() {
         return ResponseEntity.ok(applicationService.getAllApplications());
