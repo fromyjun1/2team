@@ -27,6 +27,10 @@ Thumbs.db
 *.log
 logs/
 
+# ── Cloud SQL Proxy (바이너리, 개인 설치) ──
+cloud-sql-proxy.exe
+start-db-proxy.bat
+
 # ── Java 기타 ──
 *.class
 *.nar
