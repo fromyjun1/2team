@@ -33,7 +33,7 @@ public class SecurityConfig {
                 .requestMatchers("/error").permitAll()
                 // 회원가입, 로그인, 이메일 중복 확인 — 누구나 접근 가능
                 .requestMatchers(HttpMethod.GET,  "/api/users/check-email", "/api/users/find-email").permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/users/signup", "/api/users/login").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/users/signup", "/api/users/login", "/api/users/send-verification").permitAll()
                 .requestMatchers(HttpMethod.PUT,  "/api/users/change-password").permitAll()
                 // 업로드된 이미지 — 누구나 접근 가능
                 .requestMatchers("/images/**").permitAll()

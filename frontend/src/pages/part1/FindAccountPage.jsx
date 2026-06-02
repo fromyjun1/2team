@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { findEmail, changePassword } from '../../api';
+import { findEmail, sendVerification, changePassword } from '../../api';
 
 const PW_REGEX = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/;
 
@@ -12,9 +12,13 @@ export default function FindAccountPage() {
   const [foundEmail, setFoundEmail] = useState('');
   const [findError, setFindError] = useState('');
 
-  // 비밀번호 변경
-  const [pwForm, setPwForm]   = useState({ email: '', newPassword: '', confirmPassword: '' });
+  // 비밀번호 변경 (3단계)
+  const [pwStep, setPwStep] = useState(1); // 1: 이메일, 2: 인증코드, 3: 새 비밀번호
+  const [pwEmail, setPwEmail] = useState('');
+  const [pwCode, setPwCode] = useState('');
+  const [pwForm, setPwForm] = useState({ newPassword: '', confirmPassword: '' });
   const [pwError, setPwError] = useState('');
+  const [pwLoading, setPwLoading] = useState(false);
   const [pwSuccess, setPwSuccess] = useState(false);
 
   const handleFindEmail = async (e) => {
@@ -29,6 +33,30 @@ export default function FindAccountPage() {
     }
   };
 
+  const handleSendCode = async (e) => {
+    e.preventDefault();
+    setPwError('');
+    setPwLoading(true);
+    try {
+      await sendVerification(pwEmail);
+      setPwStep(2);
+    } catch (err) {
+      setPwError(err.response?.data?.error || '이메일 발송에 실패했습니다.');
+    } finally {
+      setPwLoading(false);
+    }
+  };
+
+  const handleVerifyCode = (e) => {
+    e.preventDefault();
+    setPwError('');
+    if (pwCode.length !== 6) {
+      setPwError('6자리 인증코드를 입력해주세요.');
+      return;
+    }
+    setPwStep(3);
+  };
+
   const handleChangePassword = async (e) => {
     e.preventDefault();
     setPwError('');
@@ -41,10 +69,11 @@ export default function FindAccountPage() {
       return;
     }
     try {
-      await changePassword(pwForm.email, pwForm.newPassword);
+      await changePassword(pwEmail, pwCode, pwForm.newPassword);
       setPwSuccess(true);
     } catch (err) {
       setPwError(err.response?.data?.error || '비밀번호 변경 중 오류가 발생했습니다.');
+      setPwStep(2);
     }
   };
 
@@ -63,7 +92,7 @@ export default function FindAccountPage() {
           </button>
           <button
             style={{ ...styles.tab, ...(tab === 'password' ? styles.tabActive : {}) }}
-            onClick={() => { setTab('password'); setPwSuccess(false); setPwError(''); }}
+            onClick={() => { setTab('password'); setPwSuccess(false); setPwError(''); setPwStep(1); setPwEmail(''); setPwCode(''); }}
           >
             비밀번호 변경
           </button>
@@ -113,38 +142,81 @@ export default function FindAccountPage() {
               <Link to="/login" style={styles.linkBtn}>로그인하러 가기</Link>
             </div>
           ) : (
-            <form onSubmit={handleChangePassword} style={styles.form}>
-              <p style={styles.desc}>가입된 이메일과 새 비밀번호를 입력해주세요.</p>
-              <label style={styles.label}>이메일</label>
-              <input
-                style={styles.input}
-                type="email"
-                placeholder="가입한 이메일"
-                value={pwForm.email}
-                onChange={(e) => setPwForm({ ...pwForm, email: e.target.value })}
-                required
-              />
-              <label style={styles.label}>새 비밀번호</label>
-              <input
-                style={styles.input}
-                type="password"
-                placeholder="영문+숫자+특수문자, 8자 이상"
-                value={pwForm.newPassword}
-                onChange={(e) => setPwForm({ ...pwForm, newPassword: e.target.value })}
-                required
-              />
-              <label style={styles.label}>비밀번호 확인</label>
-              <input
-                style={styles.input}
-                type="password"
-                placeholder="비밀번호 재입력"
-                value={pwForm.confirmPassword}
-                onChange={(e) => setPwForm({ ...pwForm, confirmPassword: e.target.value })}
-                required
-              />
-              {pwError && <p style={styles.error}>{pwError}</p>}
-              <button style={styles.btn} type="submit">비밀번호 변경</button>
-            </form>
+            <>
+              <div style={styles.stepRow}>
+                {['이메일 입력', '인증코드 확인', '비밀번호 변경'].map((label, i) => (
+                  <div key={i} style={{ ...styles.step, ...(pwStep === i + 1 ? styles.stepActive : {}) }}>
+                    <span style={styles.stepNum}>{i + 1}</span> {label}
+                  </div>
+                ))}
+              </div>
+
+              {pwStep === 1 && (
+                <form onSubmit={handleSendCode} style={styles.form}>
+                  <p style={styles.desc}>가입 시 사용한 이메일을 입력하면 인증코드를 보내드립니다.</p>
+                  <label style={styles.label}>이메일</label>
+                  <input
+                    style={styles.input}
+                    type="email"
+                    placeholder="가입한 이메일"
+                    value={pwEmail}
+                    onChange={(e) => setPwEmail(e.target.value)}
+                    required
+                  />
+                  {pwError && <p style={styles.error}>{pwError}</p>}
+                  <button style={styles.btn} type="submit" disabled={pwLoading}>
+                    {pwLoading ? '전송 중...' : '인증코드 발송'}
+                  </button>
+                </form>
+              )}
+
+              {pwStep === 2 && (
+                <form onSubmit={handleVerifyCode} style={styles.form}>
+                  <p style={styles.desc}>{pwEmail}로 발송된 6자리 코드를 입력해주세요. (5분 내)</p>
+                  <label style={styles.label}>인증코드</label>
+                  <input
+                    style={styles.input}
+                    type="text"
+                    placeholder="6자리 숫자"
+                    maxLength={6}
+                    value={pwCode}
+                    onChange={(e) => setPwCode(e.target.value.replace(/\D/g, ''))}
+                    required
+                  />
+                  {pwError && <p style={styles.error}>{pwError}</p>}
+                  <button style={styles.btn} type="submit">확인</button>
+                  <button type="button" style={styles.btnGhost} onClick={() => { setPwStep(1); setPwError(''); }}>
+                    이메일 다시 입력
+                  </button>
+                </form>
+              )}
+
+              {pwStep === 3 && (
+                <form onSubmit={handleChangePassword} style={styles.form}>
+                  <p style={styles.desc}>새 비밀번호를 입력해주세요.</p>
+                  <label style={styles.label}>새 비밀번호</label>
+                  <input
+                    style={styles.input}
+                    type="password"
+                    placeholder="영문+숫자+특수문자, 8자 이상"
+                    value={pwForm.newPassword}
+                    onChange={(e) => setPwForm({ ...pwForm, newPassword: e.target.value })}
+                    required
+                  />
+                  <label style={styles.label}>비밀번호 확인</label>
+                  <input
+                    style={styles.input}
+                    type="password"
+                    placeholder="비밀번호 재입력"
+                    value={pwForm.confirmPassword}
+                    onChange={(e) => setPwForm({ ...pwForm, confirmPassword: e.target.value })}
+                    required
+                  />
+                  {pwError && <p style={styles.error}>{pwError}</p>}
+                  <button style={styles.btn} type="submit">비밀번호 변경</button>
+                </form>
+              )}
+            </>
           )
         )}
 
@@ -174,4 +246,9 @@ const styles = {
   resultEmail: { fontSize: 20, fontWeight: 700, color: '#4f46e5', marginBottom: 24 },
   linkBtn:     { display: 'inline-block', padding: '10px 28px', background: '#4f46e5', color: '#fff', borderRadius: 8, fontSize: 14, textDecoration: 'none' },
   bottom:      { textAlign: 'center', marginTop: 20, fontSize: 13, color: '#aaa' },
+  stepRow:     { display: 'flex', justifyContent: 'space-between', marginBottom: 20, gap: 4 },
+  step:        { flex: 1, textAlign: 'center', fontSize: 11, color: '#bbb', padding: '6px 2px', borderRadius: 6, background: '#f5f5f5' },
+  stepActive:  { color: '#4f46e5', fontWeight: 700, background: '#ede9fe' },
+  stepNum:     { fontWeight: 700 },
+  btnGhost:    { marginTop: 4, padding: 10, background: 'none', color: '#888', border: '1px solid #ddd', borderRadius: 8, fontSize: 13, cursor: 'pointer' },
 };

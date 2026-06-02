@@ -65,6 +65,11 @@ public class UserService {
         return !userRepository.existsByUserEmail(email);
     }
 
+    public User findUserByEmail(String email) {
+        return userRepository.findByUserEmail(email)
+            .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 이메일입니다."));
+    }
+
     public Map<String, Object> getMe(Long userId) {
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
@@ -117,6 +122,15 @@ public class UserService {
             throw new IllegalArgumentException("현재 비밀번호가 올바르지 않습니다.");
         }
         user.setUserPw(passwordEncoder.encode(newPassword));
+    }
+
+    @Transactional
+    public void verifyAndChangePassword(String email, String code, String newPassword,
+                                        EmailVerificationService verificationService) {
+        if (!verificationService.verify(email, code)) {
+            throw new IllegalArgumentException("인증코드가 올바르지 않거나 만료되었습니다.");
+        }
+        changePassword(email, newPassword);
     }
 
     @Transactional
