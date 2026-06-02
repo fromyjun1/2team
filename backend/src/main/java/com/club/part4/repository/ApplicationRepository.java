@@ -8,5 +8,6 @@ public interface ApplicationRepository extends JpaRepository<Application, Long> 
     boolean existsByUserIdAndClubId(Long userId, Long clubId);
     List<Application> findByUserIdOrderByAppliedAtDesc(Long userId);
     List<Application> findByClubIdOrderByAppliedAt(Long clubId);
+    List<Application> findByClubIdAndStatus(Long clubId, String status);
     long countByStatus(String status);
 }

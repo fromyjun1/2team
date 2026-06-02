@@ -78,7 +78,7 @@ export default function AdminPage() {
       {!loading && tab === 0 && stats && (
         <div style={s.statsGrid}>
           <StatCard label="총 회원"    value={stats.users}        color="#ff6b35" />
-          <StatCard label="활성 동아리" value={stats.clubs}        color="#4f46e5" />
+          <StatCard label="활성 동아리" value={stats.clubs}        color="#ff6b35" />
           <StatCard label="총 신청"    value={stats.applications} color="#059669" />
           <StatCard label="대기 중"    value={stats.pending}      color="#d97706" />
         </div>

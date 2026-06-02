@@ -122,6 +122,7 @@ public class UserService {
             throw new IllegalArgumentException("현재 비밀번호가 올바르지 않습니다.");
         }
         user.setUserPw(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
     }
 
     @Transactional
@@ -147,6 +148,7 @@ public class UserService {
         User user = userRepository.findByUserEmail(email)
             .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 이메일입니다."));
         user.setUserPw(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
     }
 
     @Transactional

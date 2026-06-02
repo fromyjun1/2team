@@ -2,6 +2,7 @@ package com.club.part4.service;
 
 import com.club.part1.repository.UserRepository;
 import com.club.part4.model.QnaBoard;
+import com.club.part4.repository.ApplicationRepository;
 import com.club.part4.repository.QnaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -18,6 +19,7 @@ public class QnaService {
 
     private final QnaRepository qnaRepository;
     private final UserRepository userRepository;
+    private final ApplicationRepository applicationRepository;
 
     public List<QnaBoard> getList(Long clubId, Long currentUserId) {
         List<QnaBoard> all = qnaRepository.findByClubIdOrderByCreatedAt(clubId);
@@ -39,9 +41,19 @@ public class QnaService {
         Map<Long, String> nameMap = userRepository.findAllById(authorIds).stream()
             .collect(Collectors.toMap(u -> u.getUserId(), u -> u.getUserName()));
 
+        // 이 동아리의 승인된 멤버 ID 목록
+        Set<Long> memberIds = applicationRepository.findByClubIdAndStatus(clubId, "APPROVED")
+            .stream()
+            .map(a -> a.getUserId())
+            .collect(Collectors.toSet());
+
         questions.forEach(q -> {
             q.setAuthorName(nameMap.getOrDefault(q.getAuthorId(), "알 수 없음"));
-            q.getReplies().forEach(r -> r.setAuthorName(nameMap.getOrDefault(r.getAuthorId(), "알 수 없음")));
+            q.setMember(memberIds.contains(q.getAuthorId()));
+            q.getReplies().forEach(r -> {
+                r.setAuthorName(nameMap.getOrDefault(r.getAuthorId(), "알 수 없음"));
+                r.setMember(memberIds.contains(r.getAuthorId()));
+            });
         });
 
         return questions;
