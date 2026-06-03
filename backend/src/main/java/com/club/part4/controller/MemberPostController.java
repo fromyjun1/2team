@@ -56,6 +56,23 @@ public class MemberPostController {
         }
     }
 
+    // PUT /api/member-posts/{postId} — 글 수정 (작성자/동아리장/ADMIN)
+    @PutMapping("/{postId}")
+    public ResponseEntity<?> update(@PathVariable Long postId,
+                                    @RequestBody Map<String, Object> body,
+                                    Authentication auth) {
+        Long userId = (Long) auth.getPrincipal();
+        try {
+            return ResponseEntity.ok(memberPostService.update(
+                postId, userId,
+                (String) body.get("title"),
+                (String) body.get("content")
+            ));
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", e.getMessage()));
+        }
+    }
+
     // DELETE /api/member-posts/{postId} — 글/댓글 삭제 (작성자/동아리장/ADMIN)
     @DeleteMapping("/{postId}")
     public ResponseEntity<?> delete(@PathVariable Long postId, Authentication auth) {

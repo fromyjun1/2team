@@ -80,15 +80,26 @@ public class MemberPostService {
     }
 
     @Transactional
+    public MemberPost update(Long postId, Long requestUserId, String title, String content) {
+        MemberPost post = memberPostRepository.findById(postId)
+            .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
+        boolean isAuthor = post.getAuthorId().equals(requestUserId);
+        boolean isAdmin  = userRepository.findById(requestUserId)
+            .map(u -> "ADMIN".equals(u.getRole())).orElse(false);
+        if (!isAuthor && !isAdmin) throw new SecurityException("권한이 없습니다.");
+        if (title   != null && !title.isBlank())   post.setTitle(title);
+        if (content != null && !content.isBlank()) post.setContent(content);
+        return memberPostRepository.save(post);
+    }
+
+    @Transactional
     public void delete(Long postId, Long requestUserId) {
         MemberPost post = memberPostRepository.findById(postId)
             .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
         boolean isAuthor = post.getAuthorId().equals(requestUserId);
-        boolean isCreator = clubRepository.findById(post.getClubId())
-            .map(c -> c.getCreatorId().equals(requestUserId)).orElse(false);
-        boolean isAdmin = userRepository.findById(requestUserId)
+        boolean isAdmin  = userRepository.findById(requestUserId)
             .map(u -> "ADMIN".equals(u.getRole())).orElse(false);
-        if (!isAuthor && !isCreator && !isAdmin) throw new SecurityException("권한이 없습니다.");
+        if (!isAuthor && !isAdmin) throw new SecurityException("권한이 없습니다.");
         if (post.getParentId() == null) {
             memberPostRepository.deleteAll(memberPostRepository.findByParentId(postId));
         }

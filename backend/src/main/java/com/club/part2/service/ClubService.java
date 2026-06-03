@@ -1,5 +1,6 @@
 package com.club.part2.service;
 
+import com.club.part1.repository.UserRepository;
 import com.club.part2.model.Club;
 import com.club.part2.model.ClubTag;
 import com.club.part2.repository.ClubRepository;
@@ -17,6 +18,7 @@ public class ClubService {
 
     private final ClubRepository clubRepository;
     private final ClubTagRepository clubTagRepository;
+    private final UserRepository userRepository;
 
     public List<Club> getClubs(String category) {
         if (category != null && !category.isBlank()) {
@@ -54,6 +56,13 @@ public class ClubService {
         }
         Club saved = clubRepository.save(club);
 
+        userRepository.findById(creatorId).ifPresent(user -> {
+            if ("USER".equals(user.getRole())) {
+                user.setRole("CLUB_ADMIN");
+                userRepository.save(user);
+            }
+        });
+
         @SuppressWarnings("unchecked")
         List<String> tags = (List<String>) body.get("tags");
         if (tags != null) {
@@ -90,6 +99,10 @@ public class ClubService {
         }
         if (body.containsKey("isRecruiting")) club.setIsRecruiting((String) body.get("isRecruiting"));
         return clubRepository.save(club);
+    }
+
+    public List<Club> getCreatedClubs(Long creatorId) {
+        return clubRepository.findByCreatorIdAndIsActive(creatorId, "Y");
     }
 
     public List<Club> getAllClubs() {

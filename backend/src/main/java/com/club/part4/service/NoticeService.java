@@ -53,6 +53,22 @@ public class NoticeService {
     }
 
     @Transactional
+    public Notice update(Long noticeId, Long requestUserId, String title, String content) {
+        Notice notice = noticeRepository.findById(noticeId)
+            .orElseThrow(() -> new IllegalArgumentException("공지를 찾을 수 없습니다."));
+        boolean isCreator = clubRepository.findById(notice.getClubId())
+            .map(c -> c.getCreatorId().equals(requestUserId))
+            .orElse(false);
+        boolean isAdmin = userRepository.findById(requestUserId)
+            .map(u -> "ADMIN".equals(u.getRole()))
+            .orElse(false);
+        if (!isCreator && !isAdmin) throw new SecurityException("권한이 없습니다.");
+        if (title   != null && !title.isBlank())   notice.setTitle(title);
+        if (content != null && !content.isBlank()) notice.setContent(content);
+        return noticeRepository.save(notice);
+    }
+
+    @Transactional
     public void delete(Long noticeId, Long requestUserId) {
         Notice notice = noticeRepository.findById(noticeId)
             .orElseThrow(() -> new IllegalArgumentException("공지를 찾을 수 없습니다."));

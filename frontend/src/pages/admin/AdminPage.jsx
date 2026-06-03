@@ -109,6 +109,7 @@ export default function AdminPage() {
                       style={s.select}
                     >
                       <option value="USER">USER</option>
+                      <option value="CLUB_ADMIN">CLUB_ADMIN</option>
                       <option value="ADMIN">ADMIN</option>
                     </select>
                   </td>
