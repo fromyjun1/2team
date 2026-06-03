@@ -102,5 +102,6 @@ export const getAdminUsers        = ()             => api.get('/admin/users');
 export const changeUserRole       = (userId, role) => api.patch(`/admin/users/${userId}/role`, { role });
 export const getAdminClubs        = ()             => api.get('/admin/clubs');
 export const deactivateClub       = (clubId)       => api.delete(`/admin/clubs/${clubId}`);
+export const activateClub         = (clubId)       => api.patch(`/admin/clubs/${clubId}/activate`);
 export const deleteClubPermanent  = (clubId)       => api.delete(`/admin/clubs/${clubId}/permanent`);
 export const getAdminApplications = ()             => api.get('/admin/applications');

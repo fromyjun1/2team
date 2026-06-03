@@ -177,6 +177,13 @@ export default function ClubGalleryPage() {
           {sorted.length === 0 && hasFilter && (
             <p style={{ color: '#b08070', fontSize: 14, gridColumn: '1/-1' }}>검색 결과가 없습니다.</p>
           )}
+          {sorted.length === 0 && !hasFilter && (
+            <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '60px 0', color: '#aaa' }}>
+              <div style={{ fontSize: 56, marginBottom: 16 }}>🎪</div>
+              <p style={{ fontSize: 16, fontWeight: 600, marginBottom: 8 }}>아직 등록된 동아리가 없습니다.</p>
+              <p style={{ fontSize: 14 }}>첫 번째 동아리를 만들어 보세요!</p>
+            </div>
+          )}
           {sorted.map((club) => {
             const isClosed = club.isRecruiting === 'N';
             return (
