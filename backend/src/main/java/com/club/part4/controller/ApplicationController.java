@@ -25,9 +25,11 @@ public class ApplicationController {
     @PostMapping
     public ResponseEntity<Application> apply(@RequestBody Map<String, Object> body) {
         Long userId = (Long) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Long clubId = Long.valueOf(body.get("clubId").toString());
-        String motivation = (String) body.get("motivation");
-        return ResponseEntity.ok(applicationService.apply(userId, clubId, motivation));
+        Long clubId       = Long.valueOf(body.get("clubId").toString());
+        String applicantName = (String) body.getOrDefault("applicantName", "");
+        String applicantAge  = (String) body.getOrDefault("applicantAge",  "");
+        String motivation    = (String) body.get("motivation");
+        return ResponseEntity.ok(applicationService.apply(userId, clubId, applicantName, applicantAge, motivation));
     }
 
     // GET /api/applications/user/{userId} — 내 신청 현황 (본인만)
@@ -87,10 +89,12 @@ public class ApplicationController {
     @PostMapping("/reapply")
     public ResponseEntity<?> reapply(@RequestBody Map<String, Object> body, Authentication authentication) {
         Long userId = (Long) authentication.getPrincipal();
-        Long clubId = Long.valueOf(body.get("clubId").toString());
-        String motivation = (String) body.get("motivation");
+        Long clubId          = Long.valueOf(body.get("clubId").toString());
+        String applicantName = (String) body.getOrDefault("applicantName", "");
+        String applicantAge  = (String) body.getOrDefault("applicantAge",  "");
+        String motivation    = (String) body.get("motivation");
         try {
-            return ResponseEntity.ok(applicationService.reapply(userId, clubId, motivation));
+            return ResponseEntity.ok(applicationService.reapply(userId, clubId, applicantName, applicantAge, motivation));
         } catch (IllegalStateException e) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", e.getMessage()));
         }

@@ -25,13 +25,15 @@ public class ApplicationService {
     private final NotificationService notificationService;
 
     @Transactional
-    public Application apply(Long userId, Long clubId, String motivation) {
+    public Application apply(Long userId, Long clubId, String applicantName, String applicantAge, String motivation) {
         if (applicationRepository.existsByUserIdAndClubId(userId, clubId)) {
             throw new IllegalStateException("이미 신청한 동아리입니다.");
         }
         Application app = new Application();
         app.setUserId(userId);
         app.setClubId(clubId);
+        app.setApplicantName(applicantName);
+        app.setApplicantAge(applicantAge);
         app.setMotivation(motivation);
         return applicationRepository.save(app);
     }
@@ -51,6 +53,8 @@ public class ApplicationService {
                 dto.put("clubName",      clubRepository.findById(app.getClubId())
                                             .map(c -> c.getClubName())
                                             .orElse("알 수 없는 동아리"));
+                dto.put("applicantName",  app.getApplicantName());
+                dto.put("applicantAge",   app.getApplicantAge());
                 dto.put("motivation",    app.getMotivation());
                 dto.put("status",        app.getStatus());
                 dto.put("appliedAt",     app.getAppliedAt());
@@ -70,6 +74,8 @@ public class ApplicationService {
                 dto.put("userName",      userRepository.findById(app.getUserId())
                                             .map(u -> u.getUserName())
                                             .orElse("알 수 없음"));
+                dto.put("applicantName",  app.getApplicantName());
+                dto.put("applicantAge",   app.getApplicantAge());
                 dto.put("motivation",    app.getMotivation());
                 dto.put("status",        app.getStatus());
                 dto.put("appliedAt",     app.getAppliedAt());
@@ -136,13 +142,15 @@ public class ApplicationService {
     }
 
     @Transactional
-    public Application reapply(Long userId, Long clubId, String motivation) {
+    public Application reapply(Long userId, Long clubId, String applicantName, String applicantAge, String motivation) {
         Application app = applicationRepository.findByUserIdAndClubId(userId, clubId)
             .orElseThrow(() -> new IllegalArgumentException("기존 신청 정보를 찾을 수 없습니다."));
         if (!"REJECTED".equals(app.getStatus()) && !"QUIT".equals(app.getStatus())) {
             throw new IllegalStateException("거절되거나 탈퇴한 경우에만 재신청할 수 있습니다.");
         }
         app.setStatus("PENDING");
+        app.setApplicantName(applicantName);
+        app.setApplicantAge(applicantAge);
         app.setMotivation(motivation);
         app.setReviewComment(null);
         app.setAppliedAt(LocalDateTime.now());

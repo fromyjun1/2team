@@ -22,6 +22,8 @@ export default function ClubDetailPage({ userId }) {
   const [memberCount, setMemberCount] = useState(0);
   const [applying, setApplying]   = useState(false);
   const [motivation, setMotivation] = useState('');
+  const [applicantName, setApplicantName] = useState('');
+  const [applicantAge,  setApplicantAge]  = useState('');
   const [applyError, setApplyError] = useState('');
   const [confirmModal, setConfirmModal] = useState({ open: false, title: '', message: '', onConfirm: null });
 
@@ -58,18 +60,31 @@ export default function ClubDetailPage({ userId }) {
     else        { await addWishlist(userId, clubId);    setWished(true);  }
   };
 
+  const openApplyForm = () => {
+    if (requireLogin()) return;
+    // 이름 사전 입력 (localStorage에서)
+    try {
+      const stored = JSON.parse(localStorage.getItem('user') || '{}');
+      if (stored.name) setApplicantName(stored.name);
+    } catch {}
+    setApplying(!applying);
+  };
+
   const handleApply = async (e) => {
     e.preventDefault();
     if (requireLogin()) return;
     setApplyError('');
     try {
+      const payload = { clubId: Number(clubId), applicantName, applicantAge, motivation };
       if (appStatus === 'REJECTED' || appStatus === 'QUIT') {
-        await reapply({ clubId: Number(clubId), motivation });
+        await reapply(payload);
       } else {
-        await applyClub({ userId, clubId: Number(clubId), motivation });
+        await applyClub({ ...payload, userId });
       }
       setApplying(false);
       setMotivation('');
+      setApplicantName('');
+      setApplicantAge('');
       load();
     } catch (err) {
       setApplyError(err.response?.data?.error || '신청 중 오류가 발생했습니다.');
@@ -170,7 +185,7 @@ export default function ClubDetailPage({ userId }) {
                 ? <span style={{ ...styles.statusText, color: '#ef4444' }}>
                     🔴 {isClosed ? '모집이 마감되었습니다.' : '모집 마감 — 현재 정원이 가득 찼습니다.'}
                   </span>
-                : <button style={styles.applyBtn} onClick={() => { if (!requireLogin()) setApplying(!applying); }}>
+                : <button style={styles.applyBtn} onClick={openApplyForm}>
                     {applying ? '취소' : '가입 신청하기'}
                   </button>
             )}
@@ -191,7 +206,7 @@ export default function ClubDetailPage({ userId }) {
                   {appStatus === 'REJECTED' ? '❌ 신청이 거절되었습니다.' : '👋 탈퇴한 동아리입니다.'}
                 </span>
                 {!(isFull || isClosed) && (
-                  <button style={styles.applyBtn} onClick={() => { if (!requireLogin()) setApplying(!applying); }}>
+                  <button style={styles.applyBtn} onClick={openApplyForm}>
                     {applying ? '취소' : '다시 신청하기'}
                   </button>
                 )}
@@ -208,6 +223,33 @@ export default function ClubDetailPage({ userId }) {
         {/* 신청 폼 */}
         {applying && (
           <form onSubmit={handleApply} style={styles.applyForm}>
+            <p style={styles.formSection}>자기소개</p>
+            <div style={styles.introRow}>
+              <div style={{ flex: 2 }}>
+                <label style={styles.formLabel}>이름</label>
+                <input
+                  style={styles.formInput}
+                  type="text"
+                  placeholder="이름을 입력해 주세요"
+                  value={applicantName}
+                  onChange={(e) => setApplicantName(e.target.value)}
+                  required
+                />
+              </div>
+              <div style={{ flex: 1 }}>
+                <label style={styles.formLabel}>나이</label>
+                <input
+                  style={styles.formInput}
+                  type="number"
+                  placeholder="나이"
+                  min={1} max={99}
+                  value={applicantAge}
+                  onChange={(e) => setApplicantAge(e.target.value)}
+                  required
+                />
+              </div>
+            </div>
+            <p style={{ ...styles.formSection, marginTop: 8 }}>지원 동기</p>
             <textarea
               style={styles.textarea}
               rows={5}
@@ -268,6 +310,10 @@ const styles = {
   applyBtn:     { padding: '10px 22px', background: '#ff6b35', color: '#fff', border: 'none', borderRadius: 8, fontSize: 14, cursor: 'pointer' },
   leaveBtn:     { padding: '8px 16px', background: '#fee2e2', color: '#dc2626', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer' },
   applyForm:    { marginTop: 16, display: 'flex', flexDirection: 'column', gap: 10 },
+  formSection:  { margin: 0, fontSize: 13, fontWeight: 700, color: '#555' },
+  introRow:     { display: 'flex', gap: 10 },
+  formLabel:    { display: 'block', fontSize: 12, color: '#888', marginBottom: 4 },
+  formInput:    { width: '100%', padding: '10px 12px', border: '1px solid #ddd', borderRadius: 8, fontSize: 14, boxSizing: 'border-box' },
   textarea:     { padding: '12px 14px', border: '1px solid #ddd', borderRadius: 8, fontSize: 14, resize: 'vertical' },
   submitBtn:    { padding: '11px', background: '#10b981', color: '#fff', border: 'none', borderRadius: 8, fontSize: 14, cursor: 'pointer' },
   applyErrorMsg:{ color: '#ef4444', fontSize: 13, margin: 0 },

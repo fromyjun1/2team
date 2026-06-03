@@ -22,6 +22,12 @@ public class Application {
     @Column(name = "CLUB_ID", nullable = false)
     private Long clubId;
 
+    @Column(name = "applicant_name", length = 50)
+    private String applicantName;
+
+    @Column(name = "applicant_age", length = 10)
+    private String applicantAge;
+
     @Column(name = "MOTIVATION", length = 1000, nullable = false)
     private String motivation;
 
