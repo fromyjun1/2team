@@ -223,7 +223,7 @@ export default function ClubDetailPage({ userId }) {
         {/* 신청 폼 */}
         {applying && (
           <form onSubmit={handleApply} style={styles.applyForm}>
-            <p style={styles.formSection}>자기소개</p>
+            <p style={styles.formSection}>지원자 정보</p>
             <div style={styles.introRow}>
               <div style={{ flex: 2 }}>
                 <label style={styles.formLabel}>이름</label>
