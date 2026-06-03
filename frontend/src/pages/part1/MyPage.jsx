@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { getTags, getMyApplications, getWishlist, getProfile, updateProfile, changePasswordLoggedIn, getClub } from '../../api';
+import { getTags, getMyApplications, getWishlist, getProfile, updateProfile, changePasswordLoggedIn, getClub, getCreatedClubs } from '../../api';
 
 export default function MyPage({ user, onProfileSaved }) {
   const [searchParams] = useSearchParams();
@@ -31,8 +31,15 @@ export default function MyPage({ user, onProfileSaved }) {
     getMyApplications(user.userId).then(async (r) => {
       setApps(r.data);
       const approved = r.data.filter((a) => a.status === 'APPROVED');
-      const clubs = await Promise.all(approved.map((a) => getClub(a.clubId).then((res) => res.data).catch(() => null)));
-      setMyClubs(clubs.filter(Boolean));
+      const memberClubs = await Promise.all(
+        approved.map((a) => getClub(a.clubId).then((res) => ({ ...res.data, isOwner: false })).catch(() => null))
+      );
+      const createdClubs = await getCreatedClubs(user.userId)
+        .then((res) => res.data.map((c) => ({ ...c, isOwner: true })))
+        .catch(() => []);
+      const createdIds = new Set(createdClubs.map((c) => c.clubId));
+      const merged = [...createdClubs, ...memberClubs.filter(Boolean).filter((c) => !createdIds.has(c.clubId))];
+      setMyClubs(merged);
     }).catch(() => {});
     getWishlist(user.userId).then((r) => setWishlist(r.data)).catch(() => {});
     getProfile(user.userId).then((r) => {
@@ -164,7 +171,9 @@ export default function MyPage({ user, onProfileSaved }) {
                   <div style={styles.clubCardBody}>
                     <p style={styles.clubCardCategory}>{c.category}</p>
                     <p style={styles.clubCardName}>{c.clubName}</p>
-                    <span style={styles.memberBadge}>✅ 멤버</span>
+                    {c.isOwner
+                      ? <span style={styles.ownerBadge}>👑 동아리장</span>
+                      : <span style={styles.memberBadge}>✅ 멤버</span>}
                   </div>
                 </Link>
               ))}
@@ -326,4 +335,5 @@ const styles = {
   clubCardCategory: { fontSize: 11, color: '#ff6b35', fontWeight: 700, margin: '0 0 4px' },
   clubCardName:  { fontSize: 14, fontWeight: 700, color: '#1e293b', margin: '0 0 8px' },
   memberBadge:   { fontSize: 12, color: '#10b981', fontWeight: 600 },
+  ownerBadge:    { fontSize: 12, color: '#d97706', fontWeight: 600 },
 };

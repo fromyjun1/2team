@@ -46,8 +46,9 @@ export const updateProfile = (userId, studentNo, department, certificateFile) =>
 };
 
 // ── 파트 2: 동아리 ──────────────────────────────
-export const getClubs   = (category) => api.get('/clubs', { params: { category } });
-export const getClub    = (clubId)   => api.get(`/clubs/${clubId}`);
+export const getClubs        = (category) => api.get('/clubs', { params: { category } });
+export const getClub         = (clubId)   => api.get(`/clubs/${clubId}`);
+export const getCreatedClubs = (userId)   => api.get(`/clubs/created-by/${userId}`);
 export const createClub = (data)     => api.post('/clubs', data);
 export const updateClub = (clubId, data) => api.put(`/clubs/${clubId}`, data);
 export const uploadClubImage = (file) => {

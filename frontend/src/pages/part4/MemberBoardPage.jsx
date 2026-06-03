@@ -18,7 +18,7 @@ export default function MemberBoardPage({ user }) {
   const isCreator = club?.creatorId === userId;
 
   const canDelete = (post) =>
-    userId === post.authorId || isCreator || user?.role === 'ADMIN';
+    userId === post.authorId || user?.role === 'ADMIN';
 
   const load = () => {
     getClub(clubId).then((r) => setClub(r.data)).catch(() => {});

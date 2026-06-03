@@ -27,7 +27,6 @@ export default function QnaPage({ user }) {
   const canEditOrDelete = (post) => {
     if (!userId) return false;
     return userId === post.authorId ||
-           userId === clubCreatorId ||
            user?.role === 'ADMIN';
   };
 

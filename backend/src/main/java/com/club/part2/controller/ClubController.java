@@ -42,6 +42,12 @@ public class ClubController {
         return ResponseEntity.ok(clubService.getClubs(category));
     }
 
+    // GET /api/clubs/created-by/{userId} — 특정 유저가 만든 동아리 목록 (공개)
+    @GetMapping("/created-by/{userId}")
+    public ResponseEntity<List<Club>> getCreatedClubs(@PathVariable Long userId) {
+        return ResponseEntity.ok(clubService.getCreatedClubs(userId));
+    }
+
     // GET /api/clubs/{clubId} — 상세 정보
     @GetMapping("/{clubId}")
     public ResponseEntity<Club> getClub(@PathVariable Long clubId) {

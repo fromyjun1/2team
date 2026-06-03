@@ -43,6 +43,23 @@ public class NoticeController {
         }
     }
 
+    // PUT /api/notices/{noticeId} — 공지 수정 (동아리장/ADMIN)
+    @PutMapping("/{noticeId}")
+    public ResponseEntity<?> update(@PathVariable Long noticeId,
+                                    @RequestBody Map<String, Object> body,
+                                    Authentication auth) {
+        Long userId = (Long) auth.getPrincipal();
+        try {
+            return ResponseEntity.ok(noticeService.update(
+                noticeId, userId,
+                (String) body.get("title"),
+                (String) body.get("content")
+            ));
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", e.getMessage()));
+        }
+    }
+
     // DELETE /api/notices/{noticeId} — 공지 삭제 (동아리장/ADMIN)
     @DeleteMapping("/{noticeId}")
     public ResponseEntity<?> delete(@PathVariable Long noticeId, Authentication auth) {

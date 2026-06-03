@@ -15,6 +15,7 @@ export default function NoticePage({ user }) {
   const [submitting, setSubmitting] = useState(false);
 
   const isCreator = club?.creatorId === userId;
+  const canWrite  = isCreator && (user?.role === 'CLUB_ADMIN' || user?.role === 'ADMIN');
 
   const load = () => {
     getClub(clubId).then((r) => setClub(r.data)).catch(() => {});
@@ -82,7 +83,7 @@ export default function NoticePage({ user }) {
         </div>
       ))}
 
-      {isCreator && (
+      {canWrite && (
         writing ? (
           <form onSubmit={handleSubmit} style={styles.writeForm}>
             <h3 style={styles.writeTitle}>공지 작성</h3>

@@ -119,10 +119,6 @@ public class QnaService {
     private void checkPermission(QnaBoard qna, Long requestUserId) {
         if (qna.getAuthorId().equals(requestUserId)) return;
 
-        Club club = clubRepository.findById(qna.getClubId())
-            .orElseThrow(() -> new IllegalArgumentException("동아리를 찾을 수 없습니다."));
-        if (club.getCreatorId().equals(requestUserId)) return;
-
         User user = userRepository.findById(requestUserId)
             .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
         if ("ADMIN".equals(user.getRole())) return;
