@@ -160,7 +160,7 @@ export default function ClubManagePage({ user }) {
 
       {/* 탭 */}
       <div style={styles.tabBar}>
-        {[['applications','신청 심사'], ['edit','정보 수정'], ['members','멤버 목록']].map(([key, label]) => (
+        {[['applications','신청 심사'], ['edit','정보 수정'], ['members','멤버 목록'], ['kicked','추방 목록']].map(([key, label]) => (
           <button key={key} style={tab === key ? styles.tabActive : styles.tab} onClick={() => setTab(key)}>
             {label}
             {key === 'applications' && pending.length > 0 && (
@@ -318,6 +318,38 @@ export default function ClubManagePage({ user }) {
         </div>
       )}
 
+      {/* ── 추방 목록 탭 ── */}
+      {tab === 'kicked' && (() => {
+        const kicked = applications.filter((a) => a.status === 'KICKED');
+        return (
+          <div>
+            {kicked.length === 0
+              ? <p style={styles.empty}>추방된 멤버가 없습니다.</p>
+              : kicked.map((app) => (
+                <div key={app.appId} style={styles.memberCard}>
+                  <div>
+                    <span style={styles.memberName}>{app.userName}</span>
+                    <span style={styles.kickedBadge}>추방됨</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <span style={styles.memberDate}>{new Date(app.appliedAt).toLocaleDateString()} 신청</span>
+                    <button
+                      style={styles.unbanBtn}
+                      onClick={() => openConfirm(
+                        '추방 해제',
+                        `${app.userName}님의 추방을 해제하시겠습니까?\n해제 후 해당 멤버는 재신청이 가능합니다.`,
+                        () => handleStatus(app.appId, 'REJECTED')
+                      )}
+                    >
+                      추방 해제
+                    </button>
+                  </div>
+                </div>
+              ))}
+          </div>
+        );
+      })()}
+
       {/* 확인 모달 */}
       {confirmModal.open && (
         <div style={styles.modalOverlay} onClick={closeConfirm}>
@@ -372,6 +404,8 @@ const styles = {
   creatorBadge:    { display: 'inline-block', padding: '2px 8px', borderRadius: 20, background: '#fefce8', color: '#d97706', fontSize: 11, fontWeight: 700, border: '1px solid #fde68a' },
   memberDate:      { fontSize: 13, color: '#aaa' },
   kickBtn:         { padding: '5px 12px', background: '#fee2e2', color: '#dc2626', border: 'none', borderRadius: 6, fontSize: 12, fontWeight: 700, cursor: 'pointer' },
+  unbanBtn:        { padding: '5px 12px', background: '#ede9fe', color: '#7c3aed', border: 'none', borderRadius: 6, fontSize: 12, fontWeight: 700, cursor: 'pointer' },
+  kickedBadge:     { display: 'inline-block', marginLeft: 8, padding: '2px 8px', borderRadius: 20, background: '#ede9fe', color: '#7c3aed', fontSize: 11, fontWeight: 700, border: '1px solid #ddd6fe' },
   recruitingRow:   { display: 'flex', gap: 10 },
   recruitingBtn:   { flex: 1, padding: '10px', border: '2px solid #e5e7eb', borderRadius: 8, background: '#fff', fontSize: 14, cursor: 'pointer', color: '#888' },
   recruitingActive:{ border: '2px solid #10b981', background: '#f0fdf4', color: '#10b981', fontWeight: 700 },

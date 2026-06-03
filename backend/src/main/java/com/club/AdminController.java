@@ -55,6 +55,12 @@ public class AdminController {
         return ResponseEntity.ok().build();
     }
 
+    @PatchMapping("/clubs/{clubId}/activate")
+    public ResponseEntity<Void> activateClub(@PathVariable Long clubId) {
+        clubService.activateClub(clubId);
+        return ResponseEntity.ok().build();
+    }
+
     @DeleteMapping("/clubs/{clubId}/permanent")
     public ResponseEntity<Void> deleteClub(@PathVariable Long clubId) {
         clubService.deleteClub(clubId);

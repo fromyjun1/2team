@@ -121,6 +121,13 @@ public class ClubService {
     }
 
     @Transactional
+    public void activateClub(Long clubId) {
+        Club club = clubRepository.findById(clubId)
+            .orElseThrow(() -> new IllegalArgumentException("동아리를 찾을 수 없습니다."));
+        club.setIsActive("Y");
+    }
+
+    @Transactional
     public void deleteClub(Long clubId) {
         if (!clubRepository.existsById(clubId)) {
             throw new IllegalArgumentException("동아리를 찾을 수 없습니다.");
