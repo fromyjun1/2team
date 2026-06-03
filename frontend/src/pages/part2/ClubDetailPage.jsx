@@ -9,7 +9,8 @@ const APP_STATUS = {
   PENDING:  { label: '검토 중',        color: '#f59e0b', bg: '#fffbeb' },
   APPROVED: { label: '멤버로 승인됨',  color: '#10b981', bg: '#f0fdf4' },
   REJECTED: { label: '신청이 거절됨',  color: '#ef4444', bg: '#fef2f2' },
-  QUIT:     { label: '탈퇴한 동아리', color: '#6b7280', bg: '#f9fafb' },
+  QUIT:     { label: '탈퇴한 동아리',  color: '#6b7280', bg: '#f9fafb' },
+  KICKED:   { label: '추방된 동아리',  color: '#7c3aed', bg: '#f5f3ff' },
 };
 
 export default function ClubDetailPage({ userId }) {
@@ -22,6 +23,12 @@ export default function ClubDetailPage({ userId }) {
   const [applying, setApplying]   = useState(false);
   const [motivation, setMotivation] = useState('');
   const [applyError, setApplyError] = useState('');
+  const [confirmModal, setConfirmModal] = useState({ open: false, title: '', message: '', onConfirm: null });
+
+  const openConfirm = (title, message, onConfirm) =>
+    setConfirmModal({ open: true, title, message, onConfirm });
+  const closeConfirm = () =>
+    setConfirmModal({ open: false, title: '', message: '', onConfirm: null });
 
   const requireLogin = () => { if (!userId) { navigate('/login'); return true; } return false; };
 
@@ -69,14 +76,19 @@ export default function ClubDetailPage({ userId }) {
     }
   };
 
-  const handleLeave = async () => {
-    if (!window.confirm('정말 동아리를 탈퇴하시겠습니까?')) return;
-    try {
-      await leaveClub(clubId);
-      load();
-    } catch {
-      alert('탈퇴 처리 중 오류가 발생했습니다.');
-    }
+  const handleLeave = () => {
+    openConfirm(
+      '동아리 탈퇴',
+      `정말 ${club?.clubName}에서 탈퇴하시겠습니까? 탈퇴 후 재신청이 가능합니다.`,
+      async () => {
+        try {
+          await leaveClub(clubId);
+          load();
+        } catch {
+          alert('탈퇴 처리 중 오류가 발생했습니다.');
+        }
+      }
+    );
   };
 
   if (!club) return <p style={{ textAlign: 'center', marginTop: 80 }}>불러오는 중...</p>;
@@ -185,6 +197,11 @@ export default function ClubDetailPage({ userId }) {
                 )}
               </div>
             )}
+            {appStatus === 'KICKED' && (
+              <span style={{ ...styles.statusText, color: APP_STATUS.KICKED.color }}>
+                🚫 해당 동아리에서 추방되었습니다.
+              </span>
+            )}
           </div>
         )}
 
@@ -204,6 +221,20 @@ export default function ClubDetailPage({ userId }) {
           </form>
         )}
       </div>
+
+      {/* 확인 모달 */}
+      {confirmModal.open && (
+        <div style={styles.modalOverlay} onClick={closeConfirm}>
+          <div style={styles.modalBox} onClick={(e) => e.stopPropagation()}>
+            <h3 style={styles.modalTitle}>{confirmModal.title}</h3>
+            <p style={styles.modalMsg}>{confirmModal.message}</p>
+            <div style={styles.modalBtns}>
+              <button style={styles.modalCancel} onClick={closeConfirm}>취소</button>
+              <button style={styles.modalConfirm} onClick={() => { confirmModal.onConfirm(); closeConfirm(); }}>확인</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -240,4 +271,11 @@ const styles = {
   textarea:     { padding: '12px 14px', border: '1px solid #ddd', borderRadius: 8, fontSize: 14, resize: 'vertical' },
   submitBtn:    { padding: '11px', background: '#10b981', color: '#fff', border: 'none', borderRadius: 8, fontSize: 14, cursor: 'pointer' },
   applyErrorMsg:{ color: '#ef4444', fontSize: 13, margin: 0 },
+  modalOverlay: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 },
+  modalBox:     { background: '#fff', borderRadius: 16, padding: '32px 28px', width: 340, boxShadow: '0 8px 32px rgba(0,0,0,0.18)' },
+  modalTitle:   { margin: '0 0 12px', fontSize: 18, fontWeight: 700 },
+  modalMsg:     { margin: '0 0 24px', fontSize: 14, color: '#555', lineHeight: 1.6 },
+  modalBtns:    { display: 'flex', gap: 10, justifyContent: 'flex-end' },
+  modalCancel:  { padding: '10px 20px', border: '1px solid #ddd', borderRadius: 8, background: '#fff', color: '#555', fontSize: 14, cursor: 'pointer' },
+  modalConfirm: { padding: '10px 20px', border: 'none', borderRadius: 8, background: '#ef4444', color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer' },
 };

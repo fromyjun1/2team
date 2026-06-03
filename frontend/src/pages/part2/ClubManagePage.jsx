@@ -3,8 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { getClub, updateClub, updateClubTags, uploadClubImage, getClubApplications, updateAppStatus } from '../../api';
 
 const CATEGORIES   = ['문화/예술', '스포츠', '학술', '봉사', '기타'];
-const STATUS_LABEL = { PENDING: '검토 중', APPROVED: '승인', REJECTED: '거절' };
-const STATUS_COLOR = { PENDING: '#f59e0b', APPROVED: '#10b981', REJECTED: '#ef4444' };
+const STATUS_LABEL = { PENDING: '검토 중', APPROVED: '승인', REJECTED: '거절', KICKED: '추방', QUIT: '탈퇴' };
+const STATUS_COLOR = { PENDING: '#f59e0b', APPROVED: '#10b981', REJECTED: '#ef4444', KICKED: '#7c3aed', QUIT: '#6b7280' };
 
 export default function ClubManagePage({ user }) {
   const { clubId } = useParams();
@@ -27,6 +27,12 @@ export default function ClubManagePage({ user }) {
   const [saveMsgType, setSaveMsgType] = useState('success');
   const [appLoadError, setAppLoadError] = useState('');
   const [expandedMotivations, setExpandedMotivations] = useState({});
+  const [confirmModal, setConfirmModal] = useState({ open: false, title: '', message: '', onConfirm: null });
+
+  const openConfirm = (title, message, onConfirm) =>
+    setConfirmModal({ open: true, title, message, onConfirm });
+  const closeConfirm = () =>
+    setConfirmModal({ open: false, title: '', message: '', onConfirm: null });
 
   useEffect(() => {
     getClub(clubId).then((r) => {
@@ -298,17 +304,31 @@ export default function ClubManagePage({ user }) {
                   <span style={styles.memberDate}>{new Date(app.appliedAt).toLocaleDateString()} 가입</span>
                   <button
                     style={styles.kickBtn}
-                    onClick={() => {
-                      if (window.confirm(`${app.userName}님을 추방하시겠습니까?`)) {
-                        handleStatus(app.appId, 'KICKED');
-                      }
-                    }}
+                    onClick={() => openConfirm(
+                      '멤버 추방',
+                      `${app.userName}님을 동아리에서 추방하시겠습니까?\n추방된 멤버는 재신청이 불가능합니다.`,
+                      () => handleStatus(app.appId, 'KICKED')
+                    )}
                   >
                     추방
                   </button>
                 </div>
               </div>
             ))}
+        </div>
+      )}
+
+      {/* 확인 모달 */}
+      {confirmModal.open && (
+        <div style={styles.modalOverlay} onClick={closeConfirm}>
+          <div style={styles.modalBox} onClick={(e) => e.stopPropagation()}>
+            <h3 style={styles.modalTitle}>{confirmModal.title}</h3>
+            <p style={styles.modalMsg}>{confirmModal.message}</p>
+            <div style={styles.modalBtns}>
+              <button style={styles.modalCancel} onClick={closeConfirm}>취소</button>
+              <button style={styles.modalConfirm} onClick={() => { confirmModal.onConfirm(); closeConfirm(); }}>확인</button>
+            </div>
+          </div>
         </div>
       )}
     </div>
@@ -356,4 +376,11 @@ const styles = {
   recruitingBtn:   { flex: 1, padding: '10px', border: '2px solid #e5e7eb', borderRadius: 8, background: '#fff', fontSize: 14, cursor: 'pointer', color: '#888' },
   recruitingActive:{ border: '2px solid #10b981', background: '#f0fdf4', color: '#10b981', fontWeight: 700 },
   recruitingClosed:{ border: '2px solid #ef4444', background: '#fef2f2', color: '#ef4444', fontWeight: 700 },
+  modalOverlay:    { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 },
+  modalBox:        { background: '#fff', borderRadius: 16, padding: '32px 28px', width: 340, boxShadow: '0 8px 32px rgba(0,0,0,0.18)' },
+  modalTitle:      { margin: '0 0 12px', fontSize: 18, fontWeight: 700 },
+  modalMsg:        { margin: '0 0 24px', fontSize: 14, color: '#555', lineHeight: 1.6, whiteSpace: 'pre-line' },
+  modalBtns:       { display: 'flex', gap: 10, justifyContent: 'flex-end' },
+  modalCancel:     { padding: '10px 20px', border: '1px solid #ddd', borderRadius: 8, background: '#fff', color: '#555', fontSize: 14, cursor: 'pointer' },
+  modalConfirm:    { padding: '10px 20px', border: 'none', borderRadius: 8, background: '#ef4444', color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer' },
 };
