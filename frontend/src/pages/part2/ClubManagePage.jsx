@@ -46,7 +46,7 @@ export default function ClubManagePage({ user }) {
       });
       setChips(c.tags?.map((t) => t.tagName) || []);
       if (c.imagePath) setPreview(c.imagePath.startsWith('http') ? c.imagePath : `/images/clubs/${c.imagePath}`);
-    });
+    }).catch(() => navigate(`/clubs/${clubId}`));
     getClubApplications(clubId)
       .then((r) => setApplications(r.data))
       .catch(() => setAppLoadError('신청 목록을 불러오는 데 실패했습니다. 페이지를 새로고침 해주세요.'));
@@ -57,8 +57,12 @@ export default function ClubManagePage({ user }) {
 
   // ── 신청 심사 ──
   const handleStatus = async (appId, status) => {
-    await updateAppStatus(appId, status, comments[appId] || '');
-    setApplications((prev) => prev.map((a) => a.appId === appId ? { ...a, status } : a));
+    try {
+      await updateAppStatus(appId, status, comments[appId] || '');
+      setApplications((prev) => prev.map((a) => a.appId === appId ? { ...a, status } : a));
+    } catch {
+      setSaveMsg('처리 중 오류가 발생했습니다.'); setSaveMsgType('error');
+    }
   };
 
   // ── 동아리 정보 수정 ──

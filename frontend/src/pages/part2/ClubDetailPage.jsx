@@ -17,6 +17,7 @@ export default function ClubDetailPage({ userId }) {
   const { clubId } = useParams();
   const navigate   = useNavigate();
   const [club, setClub]           = useState(null);
+  const [loadError, setLoadError] = useState(false);
   const [wished, setWished]       = useState(false);
   const [appStatus, setAppStatus] = useState(null);   // null | PENDING | APPROVED | REJECTED | QUIT
   const [memberCount, setMemberCount] = useState(0);
@@ -49,7 +50,7 @@ export default function ClubDetailPage({ userId }) {
         setAppStatus(found ? found.status : null);
       }
       setMemberCount(countRes.data.count);
-    });
+    }).catch(() => setLoadError(true));
   };
 
   useEffect(() => { load(); }, [clubId, userId]);
@@ -106,6 +107,7 @@ export default function ClubDetailPage({ userId }) {
     );
   };
 
+  if (loadError) return <p style={{ textAlign: 'center', marginTop: 80, color: '#ef4444' }}>동아리 정보를 불러올 수 없습니다.</p>;
   if (!club) return <p style={{ textAlign: 'center', marginTop: 80 }}>불러오는 중...</p>;
 
   const isFull     = memberCount >= club.maxMembers;
@@ -119,7 +121,7 @@ export default function ClubDetailPage({ userId }) {
       <div style={styles.heroBox}>
         {club.imagePath
           ? <img src={club.imagePath.startsWith('http') ? club.imagePath : `/images/clubs/${club.imagePath}`} alt={club.clubName} style={styles.heroImg} />
-          : <div style={styles.heroPlaceholder}>{club.clubName[0]}</div>}
+          : <div style={styles.heroPlaceholder}>{club.clubName?.[0] || '?'}</div>}
       </div>
 
       <div style={styles.content} className="club-detail-content">

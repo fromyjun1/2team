@@ -8,13 +8,17 @@ export default function WishlistPage({ userId }) {
   const navigate = useNavigate();
 
   const load = () =>
-    getWishlist(userId).then((r) => setList(r.data)).finally(() => setLoading(false));
+    getWishlist(userId).then((r) => setList(r.data)).catch(() => {}).finally(() => setLoading(false));
 
   useEffect(() => { load(); }, [userId]);
 
   const handleRemove = async (clubId) => {
-    await removeWishlist(userId, clubId);
-    setList((p) => p.filter((c) => c.clubId !== clubId));
+    try {
+      await removeWishlist(userId, clubId);
+      setList((p) => p.filter((c) => c.clubId !== clubId));
+    } catch {
+      alert('찜 취소 중 오류가 발생했습니다.');
+    }
   };
 
   if (loading) return <p style={{ textAlign: 'center', marginTop: 80, color: '#ff6b35', fontWeight: 700 }}>불러오는 중...</p>;
@@ -32,7 +36,7 @@ export default function WishlistPage({ userId }) {
         <div key={club.clubId} style={styles.card}>
           <div style={styles.left}>
             <h3 style={styles.clubName}>{club.clubName}</h3>
-            <p style={styles.desc}>{club.description?.slice(0, 60)}...</p>
+            <p style={styles.desc}>{club.description ? club.description.slice(0, 60) + '...' : '소개글이 없습니다.'}</p>
             <div style={styles.barRow}>
               <span style={styles.pct}>{club.scorePct}% 일치</span>
               <div style={styles.barBg}>

@@ -236,7 +236,7 @@ function StatCard({ label, value, color }) {
 }
 
 function statusLabel(status) {
-  return { PENDING: '대기', APPROVED: '승인', REJECTED: '거절' }[status] || status;
+  return { PENDING: '대기', APPROVED: '승인', REJECTED: '거절', QUIT: '탈퇴', KICKED: '추방' }[status] || status;
 }
 
 function statusStyle(status) {
@@ -244,6 +244,8 @@ function statusStyle(status) {
     PENDING:  { background: '#fef3c7', color: '#92400e' },
     APPROVED: { background: '#d1fae5', color: '#065f46' },
     REJECTED: { background: '#fee2e2', color: '#991b1b' },
+    QUIT:     { background: '#f3f4f6', color: '#6b7280' },
+    KICKED:   { background: '#ede9fe', color: '#7c3aed' },
   })[status] || {};
 }
 

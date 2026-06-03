@@ -87,7 +87,11 @@ public class ApplicationService {
 
     public List<Map<String, Object>> getAllApplications() {
         return applicationRepository.findAll().stream()
-            .sorted((a, b) -> b.getAppliedAt().compareTo(a.getAppliedAt()))
+            .sorted((a, b) -> {
+                if (a.getAppliedAt() == null) return 1;
+                if (b.getAppliedAt() == null) return -1;
+                return b.getAppliedAt().compareTo(a.getAppliedAt());
+            })
             .map(app -> {
                 Map<String, Object> dto = new HashMap<>();
                 dto.put("appId",         app.getAppId());
@@ -145,8 +149,8 @@ public class ApplicationService {
     public Application reapply(Long userId, Long clubId, String applicantName, String applicantAge, String motivation) {
         Application app = applicationRepository.findByUserIdAndClubId(userId, clubId)
             .orElseThrow(() -> new IllegalArgumentException("기존 신청 정보를 찾을 수 없습니다."));
-        if (!"REJECTED".equals(app.getStatus()) && !"QUIT".equals(app.getStatus())) {
-            throw new IllegalStateException("거절되거나 탈퇴한 경우에만 재신청할 수 있습니다.");
+        if (!"REJECTED".equals(app.getStatus()) && !"QUIT".equals(app.getStatus()) && !"KICKED".equals(app.getStatus())) {
+            throw new IllegalStateException("거절되거나 탈퇴/추방된 경우에만 재신청할 수 있습니다.");
         }
         app.setStatus("PENDING");
         app.setApplicantName(applicantName);

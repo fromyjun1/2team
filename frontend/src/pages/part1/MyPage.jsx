@@ -61,6 +61,8 @@ export default function MyPage({ user, onProfileSaved }) {
     PENDING:  { label: '검토 중', color: '#f59e0b' },
     APPROVED: { label: '승인',    color: '#10b981' },
     REJECTED: { label: '거절',    color: '#ef4444' },
+    QUIT:     { label: '탈퇴',    color: '#6b7280' },
+    KICKED:   { label: '추방',    color: '#7c3aed' },
   };
 
   const handleProfileSave = async (e) => {
@@ -166,7 +168,7 @@ export default function MyPage({ user, onProfileSaved }) {
                   <div style={styles.clubCardImg}>
                     {c.imagePath
                       ? <img src={c.imagePath.startsWith('http') ? c.imagePath : `/images/clubs/${c.imagePath}`} alt={c.clubName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                      : <span style={{ fontSize: 28, color: '#cbd5e1' }}>{c.clubName[0]}</span>}
+                      : <span style={{ fontSize: 28, color: '#cbd5e1' }}>{c.clubName?.[0] || '?'}</span>}
                   </div>
                   <div style={styles.clubCardBody}>
                     <p style={styles.clubCardCategory}>{c.category}</p>

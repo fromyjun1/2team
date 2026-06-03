@@ -2,14 +2,14 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { getMyApplications } from '../../api';
 
-const STATUS_LABEL = { PENDING: '검토 중', APPROVED: '승인', REJECTED: '거절' };
-const STATUS_COLOR = { PENDING: '#f59e0b', APPROVED: '#10b981', REJECTED: '#ef4444' };
+const STATUS_LABEL = { PENDING: '검토 중', APPROVED: '승인', REJECTED: '거절', QUIT: '탈퇴', KICKED: '추방' };
+const STATUS_COLOR = { PENDING: '#f59e0b', APPROVED: '#10b981', REJECTED: '#ef4444', QUIT: '#6b7280', KICKED: '#7c3aed' };
 
 export default function ApplicationPage({ userId }) {
   const [applications, setApplications] = useState([]);
 
   useEffect(() => {
-    getMyApplications(userId).then((r) => setApplications(r.data));
+    getMyApplications(userId).then((r) => setApplications(r.data)).catch(() => {});
   }, [userId]);
 
   return (

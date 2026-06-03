@@ -17,7 +17,7 @@ export default function TagSelectPage({ userId, onSave }) {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    getTags(userId).then((res) => setSelected(res.data));
+    getTags(userId).then((res) => setSelected(res.data)).catch(() => {});
   }, [userId]);
 
   const toggle = (tag) => {

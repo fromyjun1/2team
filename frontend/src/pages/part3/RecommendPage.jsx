@@ -10,18 +10,23 @@ export default function RecommendPage({ userId }) {
   useEffect(() => {
     getRecommendations(userId)
       .then((res) => setResults(res.data))
+      .catch(() => {})
       .finally(() => setLoading(false));
   }, [userId]);
 
   const toggleWish = async (club) => {
-    if (club.wishlisted) {
-      await removeWishlist(userId, club.clubId);
-    } else {
-      await addWishlist(userId, club.clubId);
+    try {
+      if (club.wishlisted) {
+        await removeWishlist(userId, club.clubId);
+      } else {
+        await addWishlist(userId, club.clubId);
+      }
+      setResults((prev) =>
+        prev.map((c) => c.clubId === club.clubId ? { ...c, wishlisted: !c.wishlisted } : c)
+      );
+    } catch {
+      alert('찜 처리 중 오류가 발생했습니다.');
     }
-    setResults((prev) =>
-      prev.map((c) => c.clubId === club.clubId ? { ...c, wishlisted: !c.wishlisted } : c)
-    );
   };
 
   if (loading) return <p style={{ textAlign: 'center', marginTop: 60, color: '#ff6b35', fontWeight: 700 }}>매칭 중...</p>;

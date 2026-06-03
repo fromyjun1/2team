@@ -87,8 +87,10 @@ export default function ClubGalleryPage() {
   });
 
   const sorted = [...filtered].sort((a, b) => {
-    if (sortBy === 'name')    return a.clubName.localeCompare(b.clubName, 'ko');
+    if (sortBy === 'name')    return (a.clubName || '').localeCompare(b.clubName || '', 'ko');
     if (sortBy === 'members') return (b.maxMembers || 0) - (a.maxMembers || 0);
+    if (!a.createdAt) return 1;
+    if (!b.createdAt) return -1;
     return new Date(b.createdAt) - new Date(a.createdAt);
   });
 
