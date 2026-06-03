@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, Link, useNavigate } from 'react-router-dom';
 
-import { getMe } from './api';
+import { getMe, getNotifications, getUnreadCount, markNotifRead, markAllNotifRead } from './api';
 import LoginPage       from './pages/part1/LoginPage';
 import SignupPage      from './pages/part1/SignupPage';
 import TagSelectPage   from './pages/part1/TagSelectPage';
@@ -24,8 +24,64 @@ import MemberBoardPage  from './pages/part4/MemberBoardPage';
 
 // ── 네비게이션 바 ─────────────────────────────────
 function Navbar({ user, onLogout }) {
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [menuOpen, setMenuOpen]       = useState(false);
+  const [notifOpen, setNotifOpen]     = useState(false);
+  const [notifications, setNotifs]    = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const notifRef = useRef(null);
   const close = () => setMenuOpen(false);
+
+  const fetchNotifs = () => {
+    if (!user) return;
+    getUnreadCount().then(r => setUnreadCount(r.data.count)).catch(() => {});
+    if (notifOpen) getNotifications().then(r => setNotifs(r.data)).catch(() => {});
+  };
+
+  useEffect(() => {
+    if (!user) { setUnreadCount(0); setNotifs([]); return; }
+    getUnreadCount().then(r => setUnreadCount(r.data.count)).catch(() => {});
+    const timer = setInterval(() => {
+      getUnreadCount().then(r => setUnreadCount(r.data.count)).catch(() => {});
+    }, 30000);
+    return () => clearInterval(timer);
+  }, [user]);
+
+  useEffect(() => {
+    if (!notifOpen || !user) return;
+    getNotifications().then(r => setNotifs(r.data)).catch(() => {});
+  }, [notifOpen]);
+
+  useEffect(() => {
+    const handler = (e) => {
+      if (notifRef.current && !notifRef.current.contains(e.target)) setNotifOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const handleNotifClick = (n) => {
+    if (!n.isRead) markNotifRead(n.id).then(() => {
+      setNotifs(prev => prev.map(x => x.id === n.id ? { ...x, isRead: true } : x));
+      setUnreadCount(c => Math.max(0, c - 1));
+    }).catch(() => {});
+    if (n.link) window.location.href = n.link;
+    setNotifOpen(false);
+  };
+
+  const handleMarkAll = () => {
+    markAllNotifRead().then(() => {
+      setNotifs(prev => prev.map(x => ({ ...x, isRead: true })));
+      setUnreadCount(0);
+    }).catch(() => {});
+  };
+
+  const timeAgo = (dateStr) => {
+    const diff = Math.floor((Date.now() - new Date(dateStr)) / 1000);
+    if (diff < 60)   return '방금 전';
+    if (diff < 3600) return `${Math.floor(diff / 60)}분 전`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)}시간 전`;
+    return `${Math.floor(diff / 86400)}일 전`;
+  };
 
   return (
     <>
@@ -42,6 +98,65 @@ function Navbar({ user, onLogout }) {
         <div className="nav-right">
           {user ? (
             <>
+              {/* 알림 벨 */}
+              <div ref={notifRef} style={{ position: 'relative' }}>
+                <button
+                  onClick={() => setNotifOpen(o => !o)}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, position: 'relative', padding: '4px 8px' }}
+                  aria-label="알림"
+                >
+                  🔔
+                  {unreadCount > 0 && (
+                    <span style={{
+                      position: 'absolute', top: 0, right: 0,
+                      background: '#ef4444', color: '#fff',
+                      borderRadius: '50%', fontSize: 10, fontWeight: 700,
+                      width: 16, height: 16, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    }}>{unreadCount > 9 ? '9+' : unreadCount}</span>
+                  )}
+                </button>
+                {notifOpen && (
+                  <div style={{
+                    position: 'absolute', right: 0, top: 'calc(100% + 8px)',
+                    width: 320, background: '#fff', borderRadius: 12,
+                    boxShadow: '0 8px 32px rgba(0,0,0,0.15)', zIndex: 200,
+                    overflow: 'hidden',
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 16px', borderBottom: '1px solid #f0f0f0' }}>
+                      <span style={{ fontWeight: 700, fontSize: 14 }}>알림</span>
+                      {unreadCount > 0 && (
+                        <button onClick={handleMarkAll} style={{ background: 'none', border: 'none', fontSize: 12, color: '#ff6b35', cursor: 'pointer', fontWeight: 600 }}>
+                          전체 읽음
+                        </button>
+                      )}
+                    </div>
+                    <div style={{ maxHeight: 360, overflowY: 'auto' }}>
+                      {notifications.length === 0 ? (
+                        <div style={{ padding: '32px 16px', textAlign: 'center', color: '#aaa', fontSize: 13 }}>알림이 없습니다</div>
+                      ) : notifications.map(n => (
+                        <div
+                          key={n.id}
+                          onClick={() => handleNotifClick(n)}
+                          style={{
+                            padding: '12px 16px', cursor: 'pointer', display: 'flex', gap: 10, alignItems: 'flex-start',
+                            background: n.isRead ? '#fff' : '#fff9f5',
+                            borderBottom: '1px solid #f5f5f5',
+                          }}
+                        >
+                          <span style={{ fontSize: 18, flexShrink: 0 }}>
+                            {n.type === 'APPLICATION_APPROVED' ? '✅' : n.type === 'APPLICATION_REJECTED' ? '❌' : '🔔'}
+                          </span>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <p style={{ margin: 0, fontSize: 13, color: '#2d1b0e', fontWeight: n.isRead ? 400 : 600, lineHeight: 1.4 }}>{n.message}</p>
+                            <p style={{ margin: '4px 0 0', fontSize: 11, color: '#aaa' }}>{timeAgo(n.createdAt)}</p>
+                          </div>
+                          {!n.isRead && <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#ff6b35', flexShrink: 0, marginTop: 4 }} />}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
               <Link to="/mypage" className="nav-link">{user.name}님</Link>
               <button className="nav-btn" onClick={onLogout}>로그아웃</button>
             </>

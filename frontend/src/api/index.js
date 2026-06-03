@@ -45,6 +45,12 @@ export const updateProfile = (userId, studentNo, department, certificateFile) =>
   return api.put(`/users/${userId}/profile`, form, { headers: { 'Content-Type': 'multipart/form-data' } });
 };
 
+// ── 알림 ────────────────────────────────────────
+export const getNotifications = ()   => api.get('/notifications');
+export const getUnreadCount   = ()   => api.get('/notifications/unread-count');
+export const markNotifRead    = (id) => api.patch(`/notifications/${id}/read`);
+export const markAllNotifRead = ()   => api.patch('/notifications/read-all');
+
 // ── 파트 2: 동아리 ──────────────────────────────
 export const getClubs        = (category) => api.get('/clubs', { params: { category } });
 export const getClub         = (clubId)   => api.get(`/clubs/${clubId}`);

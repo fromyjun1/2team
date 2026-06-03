@@ -1,6 +1,7 @@
 package com.club.part4.service;
 
 import com.club.part1.repository.UserRepository;
+import com.club.part1.service.NotificationService;
 import com.club.part2.repository.ClubRepository;
 import com.club.part4.model.Application;
 import com.club.part4.repository.ApplicationRepository;
@@ -21,6 +22,7 @@ public class ApplicationService {
     private final ApplicationRepository applicationRepository;
     private final ClubRepository clubRepository;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
     @Transactional
     public Application apply(Long userId, Long clubId, String motivation) {
@@ -105,6 +107,16 @@ public class ApplicationService {
         app.setReviewComment(comment);
         app.setReviewedAt(LocalDateTime.now());
         applicationRepository.save(app);
+
+        String clubName = clubRepository.findById(app.getClubId())
+            .map(c -> c.getClubName()).orElse("동아리");
+        if ("APPROVED".equals(status)) {
+            notificationService.create(app.getUserId(), "APPLICATION_APPROVED",
+                "[" + clubName + "] 가입이 승인되었습니다.", "/applications");
+        } else if ("REJECTED".equals(status)) {
+            notificationService.create(app.getUserId(), "APPLICATION_REJECTED",
+                "[" + clubName + "] 가입이 거절되었습니다.", "/applications");
+        }
     }
 
     public long getMemberCount(Long clubId) {

@@ -14,6 +14,19 @@ CREATE TABLE notices (
     created_at TIMESTAMP   DEFAULT CURRENT_TIMESTAMP
 );
 
+-- ── 알림 ──────────────────────────────────────────────
+CREATE SEQUENCE IF NOT EXISTS seq_notification_id START WITH 1 INCREMENT BY 1;
+
+CREATE TABLE IF NOT EXISTS notifications (
+    notification_id BIGINT       DEFAULT nextval('seq_notification_id') PRIMARY KEY,
+    user_id         BIGINT       NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    type            VARCHAR(50)  NOT NULL,
+    message         VARCHAR(500) NOT NULL,
+    link            VARCHAR(200),
+    is_read         BOOLEAN      DEFAULT FALSE,
+    created_at      TIMESTAMP    DEFAULT CURRENT_TIMESTAMP
+);
+
 -- ── 멤버 게시판 ───────────────────────────────────────
 CREATE SEQUENCE seq_member_post_id START WITH 1 INCREMENT BY 1;
 
